@@ -313,7 +313,7 @@ class CdpyEnvironments(CdpSdkBase):
     def resolve_environment_crn(self, env: Union[str, None]):
         """Ensures a given env string is either the environment crn or None"""
         if isinstance(env, str):
-            if env.startswith('crn:cdp:environments'):
+            if env.startswith('crn:'):
                 return env
             else:
                 env_desc = self.describe_environment(env)
