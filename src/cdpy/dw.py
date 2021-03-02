@@ -62,8 +62,7 @@ class CdpyDw(CdpSdkBase):
         return resp
 
     def gather_clusters(self, env_crn=None):
-        if env_crn is not None and not env_crn.startswith('crn:cdp:environments'):
-            self.sdk.throw_error(CdpError("Supplied env_crn %s is not a valid CDP Environment crn" % str(env_crn)))
+        self.sdk.validate_crn(env_crn)
         clusters = self.list_clusters(env_crn=env_crn)
         out = []
         if clusters:
@@ -77,8 +76,7 @@ class CdpyDw(CdpSdkBase):
 
     def create_cluster(self, env_crn: str, overlay: bool, aws_public_subnets: list = None,
                        aws_private_subnets: list = None, az_subnet: str = None, az_enable_az: bool = None):
-        if env_crn is not None and not env_crn.startswith('crn:cdp:environments'):
-            self.sdk.throw_error(CdpError("Supplied env_crn %s is not a valid CDP Environment crn" % str(env_crn)))
+        self.sdk.validate_crn(env_crn)
         if all(x is not None for x in [aws_private_subnets, aws_private_subnets]):
             aws_options = dict(publicSubnetIds=aws_public_subnets, privateSubnetIds=aws_private_subnets)
         else:

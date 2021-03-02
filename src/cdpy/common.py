@@ -85,8 +85,11 @@ class Squelch(dict):
 class StaticCredentials(Credentials):
     """A credential class that simply takes a set of static credentials."""
 
-    def __init__(self, access_key_id, private_key):
-        super(StaticCredentials, self).__init__(access_key_id, private_key, 'static')
+    def __init__(self, access_key_id, private_key, access_token='', method='static'):
+        super(StaticCredentials, self).__init__(
+            access_key_id=access_key_id, private_key=private_key,
+            access_token=access_token, method=method
+        )
 
 
 class CdpcliWrapper(object):
@@ -221,14 +224,15 @@ class CdpcliWrapper(object):
 
         self.logger.addHandler(handler)
 
-    def _build_client(self, service, credentials=None):
+    def _build_client(self, service):
         if not self.cdp_credentials:
-            credentials = self._client_creator.context.get_credentials()
+            self.cdp_credentials = self._client_creator.context.get_credentials()
         return self._client_creator.create_client(
             service,
             self.client_endpoint,
             self.tls_verify,
-            credentials)
+            self.cdp_credentials
+        )
 
     @staticmethod
     def _default_throw_error(error: 'CdpError'):
@@ -261,6 +265,12 @@ class CdpcliWrapper(object):
     @staticmethod
     def regex_search(pattern, obj):
         return re.search(pattern, obj)
+
+    def validate_crn(self, obj: str):
+        if obj is not None and obj.startswith('crn:'):
+            pass
+        else:
+            self.throw_error(CdpError("Supplied env_crn %s is not a valid CDP crn" % str(obj)))
 
     @staticmethod
     def sleep(seconds):
