@@ -16,6 +16,10 @@ For General usage, installed from cmdline ::
 
     pip install cdpy
 
+To install the development branch instead of main ::
+
+    git+git://github.com/cloudera-labs/cdpy@devel#egg=cdpy
+
 Usage
 =====
 Note that this readme covers usage of this wrapper library only, for details of CDPCLI and underlying commands please see the CDPCLI documentation.
@@ -100,8 +104,8 @@ This example also demonstrates bypassing the Squelch error handler to implement 
     )
     if isinstance(resp, CdpError):
         if resp.error_code == 'INVALID_ARGUMENT':
-            if 'constraintViolations' not in resp.violations:
-                resp.update(message="Received violation warning:\n%s" % self.sdk.dumps(resp.violations))
+            if 'constraintViolations' not in str(resp.violations):
+                resp.update(message="Received violation warning:\n%s" % self.sdk.dumps(str(resp.violations)))
                 self.sdk.throw_warning(resp)
         self.sdk.throw_error(resp)
     return resp

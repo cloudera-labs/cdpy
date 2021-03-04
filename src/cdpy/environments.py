@@ -61,7 +61,7 @@ class CdpyEnvironments(CdpSdkBase):
                 # Describe will fail in certain fault scenarios early in Environment creation
                 # We helpfully provide the summary listing as a backup set of information
                 # If the environment truly does not exist, then this will give the same response
-                self.sdk.throw_warning(CdpWarning(resp.violations))
+                self.sdk.throw_warning(CdpWarning(str(resp.violations)))
                 return self.summarize_environment(name)
             self.sdk.throw_error(resp)
         return resp
@@ -105,9 +105,9 @@ class CdpyEnvironments(CdpSdkBase):
         )
         if isinstance(resp, CdpError):
             if resp.error_code == 'INVALID_ARGUMENT':
-                if 'constraintViolations' not in resp.violations:
-                    resp.update(message="Received violation warning:\n%s" % self.sdk.dumps(resp.violations))
-                    self.sdk.throw_warning(CdpWarning(resp.violations))
+                if 'constraintViolations' not in str(resp.violations):
+                    resp.update(message="Received violation warning:\n%s" % self.sdk.dumps(str(resp.violations)))
+                    self.sdk.throw_warning(CdpWarning(str(resp.violations)))
             self.sdk.throw_error(resp)
         return resp
 
@@ -119,9 +119,9 @@ class CdpyEnvironments(CdpSdkBase):
         )
         if isinstance(resp, CdpError):
             if resp.error_code == 'INVALID_ARGUMENT':
-                if 'constraintViolations' not in resp.violations:
-                    resp.update(message="Received violation warning:\n%s" % self.sdk.dumps(resp.violations))
-                    self.sdk.throw_warning(CdpWarning(resp.violations))
+                if 'constraintViolations' not in str(resp.violations):
+                    resp.update(message="Received violation warning:\n%s" % self.sdk.dumps(str(resp.violations)))
+                    self.sdk.throw_warning(CdpWarning(str(resp.violations)))
             self.sdk.throw_error(resp)
         return resp
 
@@ -133,9 +133,9 @@ class CdpyEnvironments(CdpSdkBase):
         )
         if isinstance(resp, CdpError):
             if resp.error_code == 'INVALID_ARGUMENT':
-                if 'constraintViolations' not in resp.violations:
-                    resp.update(message="Received violation warning:\n%s" % self.sdk.dumps(resp.violations))
-                    self.sdk.throw_warning(CdpWarning(resp.violations))
+                if 'constraintViolations' not in str(resp.violations):
+                    resp.update(message="Received violation warning:\n%s" % self.sdk.dumps(str(resp.violations)))
+                    self.sdk.throw_warning(CdpWarning(str(resp.violations)))
             self.sdk.throw_error(resp)
         return resp
 
@@ -205,7 +205,7 @@ class CdpyEnvironments(CdpSdkBase):
         )
         if isinstance(resp, CdpError):
             if resp.error_code == 'CONFLICT':
-                operation_match = self.sdk.regex_search(self.sdk.OPERATION_REGEX, resp.violations)
+                operation_match = self.sdk.regex_search(self.sdk.OPERATION_REGEX, str(resp.violations))
                 if operation_match is not None:
                     existing_op_id = operation_match.group(1)
                     if not self.sdk.strict_errors:
@@ -264,11 +264,11 @@ class CdpyEnvironments(CdpSdkBase):
                 consistency_violations = [
                     'Unable to verify credential', 'sts:AssumeRole', 'You are not authorized'
                 ]
-                if any(x in resp.violations for x in consistency_violations):
+                if any(x in str(resp.violations) for x in consistency_violations):
                     retries = retries - 1
                     self.sdk.throw_warning(
                         CdpWarning('Got likely AWS IAM eventual consistency error [%s], %d retries left...'
-                                   % (resp.violations, retries))
+                                   % (str(resp.violations), retries))
                     )
                     self.sdk.sleep(delay)
                     return self.create_aws_credential(name, role, description, retries, delay)
