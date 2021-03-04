@@ -16,7 +16,7 @@ class CdpyDatahub(CdpSdkBase):
     def list_clusters(self, environment_name=None):
         return self.sdk.call(
             svc='datahub', func='list_clusters', ret_field='clusters', squelch=[
-                Squelch(value='NOT_FOUND', default=list(),
+                Squelch(value='INVALID_ARGUMENT', default=list(),
                         warning='No Datahubs found in Tenant or provided Environment %s' % str(environment_name))
             ],
             environmentName=environment_name
@@ -31,5 +31,20 @@ class CdpyDatahub(CdpSdkBase):
     def list_cluster_templates(self):
         return self.sdk.call(svc='datahub', func='list_cluster_templates', ret_field='clusterTemplates')
 
+    def describe_cluster_template(self, name):
+        return self.sdk.call(svc='datahub', func='describe_cluster_template', ret_field='clusterTemplate', squelch=[
+            Squelch(value='NOT_FOUND')], clusterTemplateName=name)
+
     def delete_cluster(self, name):
         return self.sdk.call(svc='datahub', func='delete_cluster', clusterName=name)
+
+    def delete_cluster_templates(self, names):
+        names = names if isinstance(names, list) else [names]
+        return self.sdk.call(svc='datahub', func='delete_cluster_templates', squelch=[Squelch(value='NOT_FOUND')],
+                             ret_field='clusterTemplates', clusterTemplateNames=names)
+
+    def create_cluster_template(self, name, description, content):
+        return self.sdk.call(
+            svc='datahub', func='create_cluster_template', ret_field='clusterTemplate',
+            clusterTemplateName=name, description=description, clusterTemplateContent=content
+        )
