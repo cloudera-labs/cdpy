@@ -55,8 +55,14 @@ class CdpError(Exception):
             try:
                 _violations = json.loads(html.unescape(self.base_error.response['error']['message']))
             except JSONDecodeError:
-                _violations = self.base_error.response['error']['message']
-            self.error_code = self.base_error.response['error']['code']
+                try:
+                    _violations = self.base_error.response['error']['message']
+                except KeyError:
+                    _violations = self.base_error.args[0]
+            try:
+                self.error_code = self.base_error.response['error']['code']
+            except KeyError:
+                self.error_code = ''
             self.violations = _violations
             self.status_code = _payload.group(1)
             self.rc = 1
