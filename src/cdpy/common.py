@@ -381,7 +381,7 @@ class CdpcliWrapper(object):
                                  .format(describe_func.__name__, str(params), current_status, status_reason)))
                 else:
                     self.logger.info("Waiting for change in {0}: [{1}], current is {2}: {3}"
-                                     .format(describe_func.__name__, str(params), field, current[field]))
+                                     .format(describe_func.__name__, str(params), field, current_status))
             sleep(delay)
         else:
             self.throw_error(
