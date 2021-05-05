@@ -322,7 +322,7 @@ class CdpcliWrapper(object):
 
     def get_log(self):
         contents = self.__log_capture.getvalue()
-        self.__log_capture.close()
+        self.__log_capture.truncate(0)
         return contents
 
     @staticmethod
