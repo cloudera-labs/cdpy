@@ -322,7 +322,7 @@ class CdpcliWrapper(object):
 
     def get_log(self):
         contents = self.__log_capture.getvalue()
-        self.__log_capture.close()
+        self.__log_capture.truncate(0)
         return contents
 
     @staticmethod
@@ -365,23 +365,24 @@ class CdpcliWrapper(object):
                 else:
                     self.logger.info("Waiting for identity {0} to be returned by function {1}")
             else:
-                current_status = self._get_path(current, field)
-                if current_status is None:
-                    self.logger.info("Waiting to find field {0} in function {1} response"
-                                     .format(field, describe_func))
-                elif current_status in state:
-                    return current
-                elif current_status in self.FAILED_STATES:
-                    status_reason = 'None provided'
-                    for fail_msg_field in ['statusReason', 'failureMessage']:
-                        if fail_msg_field in current:
-                            status_reason = current[fail_msg_field]
-                    self.throw_error(
-                        CdpError("Function {0} with params [{1}] encountered failed state {2} with reason {3}"
-                                 .format(describe_func.__name__, str(params), current_status, status_reason)))
-                else:
-                    self.logger.info("Waiting for change in {0}: [{1}], current is {2}: {3}"
-                                     .format(describe_func.__name__, str(params), field, current_status))
+                if field is not None:
+                    current_status = self._get_path(current, field)
+                    if current_status is None:
+                        self.logger.info("Waiting to find field {0} in function {1} response"
+                                        .format(field, describe_func))
+                    elif current_status in state:
+                        return current
+                    elif current_status in self.FAILED_STATES:
+                        status_reason = 'None provided'
+                        for fail_msg_field in ['statusReason', 'failureMessage']:
+                            if fail_msg_field in current:
+                                status_reason = current[fail_msg_field]
+                        self.throw_error(
+                            CdpError("Function {0} with params [{1}] encountered failed state {2} with reason {3}"
+                                    .format(describe_func.__name__, str(params), current_status, status_reason)))
+                    else:
+                        self.logger.info("Waiting for change in {0}: [{1}], current is {2}: {3}"
+                                        .format(describe_func.__name__, str(params), field, current_status))
             sleep(delay)
         else:
             self.throw_error(
