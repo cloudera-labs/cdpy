@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from cdpy.common import CdpSdkBase, Squelch
+from cdpy.common import CdpError, CdpWarning, CdpSdkBase, Squelch
 
 
 class CdpyMl(CdpSdkBase):
@@ -37,3 +37,52 @@ class CdpyMl(CdpSdkBase):
             if ws_desc is not None:
                 resp.append(ws_desc)
         return resp
+    
+    def list_workspace_access(self, name: str = None, crn: str = None, env: str = None):
+        resp = self.sdk.call(
+            svc='ml', func='list_workspace_access', ret_field='users', ret_error=True,
+            workspaceName=name,
+            environmentName=env,
+            workspaceCrn=crn
+        )
+        if isinstance(resp, CdpError):
+            if resp.error_code == 'UNKNOWN':
+                self.sdk.throw_warning(CdpWarning(str(resp.violations)))
+                return list()
+            if resp.error_code == 'INVALID_ARGUMENT':
+                resp.update(message=resp.violations)
+            self.sdk.throw_error(resp)
+        return resp
+
+    def grant_workspace_access(self, identifier: str, name: str = None, crn: str = None, env: str = None):
+        resp = self.sdk.call(
+            svc='ml', func='grant_workspace_access', ret_error=True,
+            workspaceName=name,
+            environmentName=env,
+            workspaceCrn=crn,
+            identifier=identifier
+        )
+        if isinstance(resp, CdpError):
+            if resp.error_code == 'UNKNOWN':
+                self.sdk.throw_warning(CdpWarning(str(resp.violations)))
+                return None
+            if resp.error_code == 'INVALID_ARGUMENT':
+                resp.update(message=resp.violations)
+            self.sdk.throw_error(resp)
+        return resp
+        
+    def revoke_workspace_access(self, identifier: str, name: str = None, crn: str = None, env: str = None):
+        resp = self.sdk.call(
+            svc='ml', func='revoke_workspace_access', ret_error=True,
+            workspaceName=name,
+            environmentName=env,
+            workspaceCrn=crn,
+            identifier=identifier
+        )
+        if isinstance(resp, CdpError):
+            if resp.error_code == 'UNKNOWN':
+                self.sdk.throw_warning(CdpWarning(str(resp.violations)))
+            if resp.error_code == 'INVALID_ARGUMENT':
+                resp.update(message=resp.violations)
+                self.sdk.throw_error(resp)
+        return None
