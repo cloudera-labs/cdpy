@@ -114,7 +114,7 @@ class CdpcliWrapper(object):
         self.throw_error = error_handler if error_handler else self._default_throw_error
         self.throw_warning = warning_handler if warning_handler else self._default_throw_warning
         self._clients = {}
-        self._PAGE_SIZE = 50
+        self.DEFAULT_PAGE_SIZE = 200
 
         _loader = Loader()
         _user_agent = self._make_user_agent_header()
@@ -186,7 +186,8 @@ class CdpcliWrapper(object):
             'FAILED',
             'TIMEDOUT',
             'DELETE_FAILED',
-            'Error'
+            'Error',  # DW
+            'installation:failed'  # ML
         ]
 
         self.REMOVABLE_STATES = [
@@ -321,7 +322,7 @@ class CdpcliWrapper(object):
 
     def get_log(self):
         contents = self.__log_capture.getvalue()
-        self.__log_capture.close()
+        self.__log_capture.truncate(0)
         return contents
 
     @staticmethod
@@ -333,7 +334,7 @@ class CdpcliWrapper(object):
                 return None
         return value
 
-    def wait_for_state(self, describe_func, params: dict, field: Union[str, None] = 'status',
+    def wait_for_state(self, describe_func, params: dict, field: Union[str, None, list] = 'status',
                        state: Union[list, str, None] = None, delay: int = 15, timeout: int = 3600):
         """
         Proceses a loop waiting for a given function to achieve a given state or known failure states
@@ -343,7 +344,7 @@ class CdpcliWrapper(object):
                 e.g self.cdpy.opdb.describe_database
             params (dict): Parameters the describe_func requires to poll the status, e.g. { name=myname, env=myenv }
             field (str, None): The field to check in the describe_func output for the state. Use None to check for
-                listing removal during deletion. Defaults to 'status'
+                listing removal during deletion. Provide a list of strings for nested structures. Defaults to 'status'
             state (list, str, None): The state or list of states valid for return from wait function. Defaults to None
             delay (int): Delay in seconds between each poll of the describe_func. Default is 15
             timeout (int): Total wait time in seconds before the function should return a timeout. Default is 3600
@@ -353,27 +354,35 @@ class CdpcliWrapper(object):
         self.logger.info("Waiting for function {0} on params [{1}] to have field {2} with state {3}"
                          .format(describe_func.__name__, str(params), field, str(state)))
         state = state if isinstance(state, list) else [state]
+        if field is not None:
+            field = field if isinstance(field, list) else [field]
         start_time = time()
         while time() < start_time + timeout:
             current = describe_func(**params)
-            if current is not None:
-                if field not in current:
-                    self.logger.info("Waiting to find field {0} in function {1} response"
-                                     .format(field, describe_func))
-                elif current[field] in state:
+            if current is None:
+                if field is None:
                     return current
-                elif current[field] in self.FAILED_STATES:
-                    status_reason = current['statusReason'] if 'statusReason' in current else 'None provided'
-                    self.throw_error(
-                        CdpError("Function {0} with params [{1}] encountered failed state {2} with reason {3}"
-                                 .format(describe_func.__name__, str(params), current[field], status_reason)))
                 else:
-                    self.logger.info("Waiting for change in {0}: [{1}], current is {2}: {3}"
-                                     .format(describe_func.__name__, str(params), field, current[field]))
-            elif field is None:
-                return current
+                    self.logger.info("Waiting for identity {0} to be returned by function {1}")
             else:
-                self.logger.info("Waiting for identity {0} to be returned by function {1}")
+                if field is not None:
+                    current_status = self._get_path(current, field)
+                    if current_status is None:
+                        self.logger.info("Waiting to find field {0} in function {1} response"
+                                        .format(field, describe_func))
+                    elif current_status in state:
+                        return current
+                    elif current_status in self.FAILED_STATES:
+                        status_reason = 'None provided'
+                        for fail_msg_field in ['statusReason', 'failureMessage']:
+                            if fail_msg_field in current:
+                                status_reason = current[fail_msg_field]
+                        self.throw_error(
+                            CdpError("Function {0} with params [{1}] encountered failed state {2} with reason {3}"
+                                    .format(describe_func.__name__, str(params), current_status, status_reason)))
+                    else:
+                        self.logger.info("Waiting for change in {0}: [{1}], current is {2}: {3}"
+                                        .format(describe_func.__name__, str(params), field, current_status))
             sleep(delay)
         else:
             self.throw_error(
@@ -416,7 +425,7 @@ class CdpcliWrapper(object):
                     logging.debug("Found paged results in %s" % func)
                     token = resp.pop('nextToken')
                     next_page = call_function(
-                        **payload, startingToken=token, pageSize=self._PAGE_SIZE)
+                        **payload, startingToken=token, pageSize=self.DEFAULT_PAGE_SIZE)
                     for key in next_page.keys():
                         if isinstance(next_page[key], str):
                             resp[key] = next_page[key]
