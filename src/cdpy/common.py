@@ -114,7 +114,7 @@ class CdpcliWrapper(object):
         self.throw_error = error_handler if error_handler else self._default_throw_error
         self.throw_warning = warning_handler if warning_handler else self._default_throw_warning
         self._clients = {}
-        self.DEFAULT_PAGE_SIZE = 200
+        self.DEFAULT_PAGE_SIZE = 100
 
         _loader = Loader()
         _user_agent = self._make_user_agent_header()

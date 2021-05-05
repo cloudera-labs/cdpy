@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from cdpy.common import CdpSdkBase, Squelch
+from cdpy.common import CdpError, CdpWarning, CdpSdkBase, Squelch
 
 
 class CdpyMl(CdpSdkBase):
@@ -36,4 +36,51 @@ class CdpyMl(CdpSdkBase):
             ws_desc = self.describe_workspace(crn=ws['crn'])
             if ws_desc is not None:
                 resp.append(ws_desc)
+        return resp
+    
+    def list_workspace_access(self, name: str = None, crn: str = None, env: str = None):
+        resp = self.sdk.call(
+            svc='ml', func='list_workspace_access', ret_field='users', ret_error=True,
+            squelch=[
+                Squelch(value='UNKNOWN', default=list())
+            ],
+            workspaceName=name,
+            environmentName=env,
+            workspaceCrn=crn
+        )
+        if isinstance(resp, CdpError) and resp.error_code == 'INVALID_ARGUMENT':
+            resp.update(message=resp.violations)
+            self.sdk.throw_error(resp)
+        return resp
+
+    def grant_workspace_access(self, identifier: str, name: str = None, crn: str = None, env: str = None):
+        resp = self.sdk.call(
+            svc='ml', func='grant_workspace_access', ret_error=True,
+            squelch=[
+                Squelch(value='UNKNOWN')
+            ],
+            workspaceName=name,
+            environmentName=env,
+            workspaceCrn=crn,
+            identifier=identifier
+        )
+        if isinstance(resp, CdpError) and resp.error_code == 'INVALID_ARGUMENT':
+            resp.update(message=resp.violations)
+            self.sdk.throw_error(resp)
+        return resp
+        
+    def revoke_workspace_access(self, identifier: str, name: str = None, crn: str = None, env: str = None):
+        resp = self.sdk.call(
+            svc='ml', func='revoke_workspace_access', ret_error=True,
+            squelch=[
+                Squelch(value='UNKNOWN')
+            ],
+            workspaceName=name,
+            environmentName=env,
+            workspaceCrn=crn,
+            identifier=identifier
+        )
+        if isinstance(resp, CdpError) and resp.error_code == 'INVALID_ARGUMENT':
+            resp.update(message=resp.violations)
+            self.sdk.throw_error(resp)
         return resp
