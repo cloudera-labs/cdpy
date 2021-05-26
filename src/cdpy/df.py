@@ -22,19 +22,19 @@ class CdpyDf(CdpSdkBase):
     def describe_environment(self, env_crn: str):
         return self.sdk.call(
             svc='df', func='get_environment', ret_field='environment', squelch=[
-                Squelch(value='NOT_FOUND', default=list(),
+                Squelch(value='NOT_FOUND',
                         warning='No Environment with crn %s for DataFlow found in Tenant' % env_crn)
             ],
             crn=env_crn
         )
 
-    def enable_environment(self, env_crn: str, authorised_ips: list = None, min_nodes: int = 3, max_nodes: int = 3,
+    def enable_environment(self, env_crn: str, authorized_ips: list = None, min_nodes: int = 3, max_nodes: int = 3,
                            enable_public_ip: bool = True):
         self.sdk.validate_crn(env_crn)
         return self.sdk.call(
             svc='df', func='enable_environment', ret_field='environment',
             crn=env_crn, minK8sNodeCount=min_nodes, maxK8sNodeCount=max_nodes,
-            usePublicLoadBalancer=enable_public_ip, authorisedIpRanges=authorised_ips
+            usePublicLoadBalancer=enable_public_ip, authorizedIpRanges=authorized_ips
         )
 
     def disable_environment(self, env_crn: str, persist: bool = False):
