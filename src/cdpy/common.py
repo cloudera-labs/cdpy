@@ -40,6 +40,7 @@ class CdpError(Exception):
         self.ext_traceback = traceback.format_stack()[:-1]
         self.error_code = None
         self.violations = None
+        self.message = None
         self.status_code = None
         self.rc = None
         self.service = None
@@ -64,6 +65,7 @@ class CdpError(Exception):
             except KeyError:
                 self.error_code = ''
             self.violations = _violations
+            self.message = _violations
             self.status_code = _payload.group(1)
             self.rc = 1
             self.service = _payload.group(3)
