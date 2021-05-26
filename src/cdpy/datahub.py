@@ -48,3 +48,10 @@ class CdpyDatahub(CdpSdkBase):
             svc='datahub', func='create_cluster_template', ret_field='clusterTemplate',
             clusterTemplateName=name, description=description, clusterTemplateContent=content
         )
+
+    def list_cluster_definitions(self):
+        return self.sdk.call(svc='datahub', func='list_cluster_definitions', ret_field='clusterDefinitions')
+
+    def describe_cluster_definition(self, name):
+        return self.sdk.call(svc='datahub', func='describe_cluster_definition', ret_field='clusterDefinition', squelch=[
+            Squelch(value='NOT_FOUND')], clusterDefinitionName=name)
