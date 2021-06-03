@@ -156,14 +156,16 @@ class CdpcliWrapper(object):
             'STACK_CREATION_IN_PROGRESS',
             'CREATION_INITIATED',
             'FREEIPA_CREATION_IN_PROGRESS',
-            'STARTING'
+            'STARTING',
+            'ENABLING'  # DF
         ]
 
         self.TERMINATION_STATES = [
             'EXTERNAL_DATABASE_DELETION_IN_PROGRESS',
             'STACK_DELETION_IN_PROGRESS',
             'FREEIPA_DELETE_IN_PROGRESS',
-            'STOPPING'
+            'STOPPING',
+            'DISABLING'  # DF
         ]
 
         self.STARTED_STATES = [
@@ -171,7 +173,8 @@ class CdpcliWrapper(object):
             'AVAILABLE',
             'START_IN_PROGRESS',
             'RUNNING',
-            'Running'
+            'Running',  # DW
+            'GOOD_HEALTH'  # DF
         ]
 
         self.STOPPED_STATES = [
@@ -189,13 +192,15 @@ class CdpcliWrapper(object):
             'TIMEDOUT',
             'DELETE_FAILED',
             'Error',  # DW
-            'installation:failed'  # ML
+            'installation:failed',  # ML
+            'BAD_HEALTH'  # DF
         ]
 
         self.REMOVABLE_STATES = [
             'AVAILABLE', 'UPDATE_FAILED', 'CREATE_FAILED', 'ENABLE_SECURITY_FAILED', 'DELETE_FAILED',
             'DELETE_COMPLETED', 'DELETED_ON_PROVIDER_SIDE', 'STOPPED', 'START_FAILED', 'STOP_FAILED',
-            'Error', 'Running'
+            'Error', 'Running',  # DW
+            'GOOD_HEALTH', 'CONCERNING_HEALTH', 'BAD_HEALTH'  # DF
         ]
 
         # common regex patterns
