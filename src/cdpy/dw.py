@@ -76,7 +76,7 @@ class CdpyDw(CdpSdkBase):
 
     def create_cluster(self, env_crn: str, overlay: bool, aws_public_subnets: list = None,
                        aws_private_subnets: list = None, az_subnet: str = None, az_enable_az: bool = None,
-                       use_private_load_balancer: bool = None):
+                       private_load_balancer: bool = None):
         self.sdk.validate_crn(env_crn)
         if all(x is not None for x in [aws_private_subnets, aws_private_subnets]):
             aws_options = dict(publicSubnetIds=aws_public_subnets, privateSubnetIds=aws_private_subnets)
@@ -88,7 +88,7 @@ class CdpyDw(CdpSdkBase):
             azure_options = None
         return self.sdk.call(
             svc='dw', func='create_cluster', ret_field='clusterId', environmentCrn=env_crn,
-            useOverlayNetwork=overlay, usePrivateLoadBalancer=use_private_load_balancer,
+            useOverlayNetwork=overlay, usePrivateLoadBalancer=private_load_balancer,
             awsOptions=aws_options, azureOptions=azure_options
         )
 
