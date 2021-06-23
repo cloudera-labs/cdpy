@@ -88,8 +88,8 @@ class CdpyDw(CdpSdkBase):
             azure_options = None
         return self.sdk.call(
             svc='dw', func='create_cluster', ret_field='clusterId', environmentCrn=env_crn,
-            useOverlayNetwork=overlay, awsOptions=aws_options, azureOptions=azure_options,
-            usePrivateLoadBalancer=use_private_load_balancer
+            useOverlayNetwork=overlay, usePrivateLoadBalancer=use_private_load_balancer,
+            awsOptions=aws_options, azureOptions=azure_options
         )
 
     def delete_cluster(self, cluster_id: str, force: bool = False):
