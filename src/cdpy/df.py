@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from cdpy.common import CdpSdkBase, Squelch
+from cdpy.common import CdpSdkBase, Squelch, CdpError
 
 
 class CdpyDf(CdpSdkBase):
@@ -37,9 +37,19 @@ class CdpyDf(CdpSdkBase):
             usePublicLoadBalancer=enable_public_ip, authorizedIpRanges=authorized_ips
         )
 
-    def disable_environment(self, env_crn: str, persist: bool = False):
+    def disable_environment(self, env_crn: str, persist: bool = False, force: bool = False):
         self.sdk.validate_crn(env_crn)
-        return self.sdk.call(
-            svc='df', func='disable_environment', ret_field='status',
+        resp = self.sdk.call(
+            svc='df', func='disable_environment', ret_field='status', ret_error=True,
             crn=env_crn, persist=persist
         )
+        if isinstance(resp, CdpError):
+            if force:
+                return self.sdk.call(
+                    svc='df', func='delete_environment',
+                    crn=env_crn
+                )
+            else:
+                resp.update(message=resp.violations)
+                self.sdk.throw_error(resp)
+        return resp

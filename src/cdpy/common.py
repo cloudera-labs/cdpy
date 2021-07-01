@@ -194,7 +194,7 @@ class CdpcliWrapper(object):
             'DELETE_FAILED',
             'Error',  # DW
             'installation:failed',  # ML
-            'BAD_HEALTH'  # DF
+            'BAD_HEALTH',  # DF
         ]
 
         self.REMOVABLE_STATES = [
