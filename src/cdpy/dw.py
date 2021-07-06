@@ -96,3 +96,17 @@ class CdpyDw(CdpSdkBase):
         return self.sdk.call(
             svc='dw', func='delete_cluster', squelch=[Squelch('NOT_FOUND')], clusterId=cluster_id, force=force
         )
+
+    def create_vw(self, cluster_id:str, dbc_id:str, vw_type:str, name:str, template:str = None,
+                  autoscaling_min_cluster:int = None, autoscaling_max_cluster:int = None,
+                  service_config_req:str = None, tags:str = None):
+        if all(x is not None for x in [autoscaling_min_cluster, autoscaling_max_cluster]):
+            autoscaling_options = dict(minClusters=autoscaling_min_cluster, maxClusters=autoscaling_max_cluster)
+        else:
+            autoscaling_options = None
+        return self.sdk.call(
+            svc='dw', func='create_vw', ret_field='vwId', clusterId=cluster_id, dbcId=dbc_id,
+            vwType=vw_type, name=name, template=template, autoscaling=autoscaling_options,
+            config=service_config_req, tags=tags
+        )
+
