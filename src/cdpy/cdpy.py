@@ -13,6 +13,7 @@ from cdpy.ml import CdpyMl
 from cdpy.opdb import CdpyOpdb
 from cdpy.dw import CdpyDw
 from cdpy.df import CdpyDf
+from cdpy.de import CdpyDe
 
 
 class Cdpy(CdpSdkBase):
@@ -27,3 +28,4 @@ class Cdpy(CdpSdkBase):
         self.opdb = CdpyOpdb(*args, **kwargs)
         self.dw = CdpyDw(*args, **kwargs)
         self.df = CdpyDf(*args, **kwargs)
+        self.de = CdpyDe(*args, **kwargs)
