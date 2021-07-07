@@ -343,7 +343,10 @@ class CdpcliWrapper(object):
     def _get_path(obj, path):
         value = obj
         for p in path:
-            value = value.get(p)
+            if isinstance(value, dict):
+                value = value.get(p)
+            else:
+                value = None
             if value is None:
                 return None
         return value
