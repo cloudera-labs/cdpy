@@ -99,15 +99,20 @@ class CdpyDw(CdpSdkBase):
 
     def create_vw(self, cluster_id:str, dbc_id:str, vw_type:str, name:str, template:str = None,
                   autoscaling_min_cluster:int = None, autoscaling_max_cluster:int = None,
-                  service_config_req:str = None, tags:list = None):
+                  service_config_req:str = None, tags:dict = None):
         if all(x is not None for x in [autoscaling_min_cluster, autoscaling_max_cluster]):
             autoscaling_options = dict(minClusters=autoscaling_min_cluster, maxClusters=autoscaling_max_cluster)
         else:
             autoscaling_options = None
+
+        tag_list = []
+        for item in tags:
+            tag_list = tag_list.append({'key': item.key, 'value': item.value})
+
         return self.sdk.call(
             svc='dw', func='create_vw', ret_field='vwId', clusterId=cluster_id, dbcId=dbc_id,
             vwType=vw_type, name=name, template=template, autoscaling=autoscaling_options,
-            config=service_config_req, tags=tags
+            config=service_config_req, tags=tag_list
         )
 
     def create_dbc(self, cluster_id:str, name:str, load_demo_data: bool = None):
