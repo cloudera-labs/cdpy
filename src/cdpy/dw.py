@@ -100,10 +100,11 @@ class CdpyDw(CdpSdkBase):
     def create_vw(self, cluster_id:str, dbc_id:str, vw_type:str, name:str, template:str = None,
                   autoscaling_min_cluster:int = None, autoscaling_max_cluster:int = None,
                   service_config_req:str = None, tags:dict = None):
-        if all(x is not None for x in [autoscaling_min_cluster, autoscaling_max_cluster]):
-            autoscaling_options = dict(minClusters=autoscaling_min_cluster, maxClusters=autoscaling_max_cluster)
-        else:
+        if all(x is None for x in [autoscaling_min_cluster, autoscaling_max_cluster]):
             autoscaling_options = None
+        else:
+            autoscaling_options = dict(minClusters=None if autoscaling_min_cluster == 0 else autoscaling_min_cluster,
+                                       maxClusters=None if autoscaling_max_cluster == 0 else autoscaling_max_cluster)
 
         tag_list = []
         for key,value in tags.items():
