@@ -107,7 +107,7 @@ class CdpyDw(CdpSdkBase):
 
         tag_list = []
         for item in tags:
-            tag_list = tag_list.append({'key': item.key, 'value': item.value})
+            tag_list.append({'key': item.key, 'value': item.value})
 
         return self.sdk.call(
             svc='dw', func='create_vw', ret_field='vwId', clusterId=cluster_id, dbcId=dbc_id,
