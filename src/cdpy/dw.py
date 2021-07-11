@@ -110,3 +110,7 @@ class CdpyDw(CdpSdkBase):
             config=service_config_req, tags=tags
         )
 
+    def create_dbc(self, cluster_id:str, name:str, load_demo_data: bool = None):
+        return self.sdk.call(
+            svc='dw', func='create_dbc', clusterId = cluster_id, name=name, loadDemoData = load_demo_data
+        )
