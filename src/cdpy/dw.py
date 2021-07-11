@@ -106,8 +106,8 @@ class CdpyDw(CdpSdkBase):
             autoscaling_options = None
 
         tag_list = []
-        for item in tags:
-            tag_list.append({'key': item.key, 'value': item.value})
+        for key,value in tags.items():
+            tag_list.append({'key': key, 'value': value})
 
         return self.sdk.call(
             svc='dw', func='create_vw', ret_field='vwId', clusterId=cluster_id, dbcId=dbc_id,
