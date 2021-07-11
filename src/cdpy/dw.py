@@ -106,7 +106,7 @@ class CdpyDw(CdpSdkBase):
             autoscaling_options = dict(maxClusters=autoscaling_max_cluster)
         elif autoscaling_min_cluster > 0 and autoscaling_min_cluster == 0:
             autoscaling_options = dict(minClusters=autoscaling_max_cluster)
-        else
+        else:
             autoscaling_options = dict(minClusters=autoscaling_max_cluster, maxClusters=autoscaling_max_cluster)
 
         tag_list = []
