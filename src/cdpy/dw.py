@@ -130,6 +130,8 @@ class CdpyDw(CdpSdkBase):
         if not enable_sso is None:
             config['enableSSO'] = enable_sso
 
+        print('autoscaling', autoscaling, 'configs', config)
+
         return self.sdk.call(
             svc='dw', func='create_vw', ret_field='vwId', clusterId=cluster_id, dbcId=dbc_id,
             vwType=vw_type, name=name, template=template, autoscaling=autoscaling,
