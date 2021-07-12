@@ -121,11 +121,11 @@ class CdpyDw(CdpSdkBase):
             tag_list.append({'key': key, 'value': value})
 
         config = {}
-        if not common_configs is None:
+        if not common_configs is None and not common_configs:
             config['commonConfigs'] = common_configs
-        if not application_configs is None:
+        if not application_configs is None and not application_configs:
             config['applicationConfigs'] = application_configs
-        if not ldap_groups is None:
+        if not ldap_groups is None and not ldap_groups:
             config['ldapGroups'] = ldap_groups
         if not enable_sso is None:
             config['enableSSO'] = enable_sso
