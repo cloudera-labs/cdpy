@@ -99,24 +99,41 @@ class CdpyDw(CdpSdkBase):
 
     def create_vw(self, cluster_id:str, dbc_id:str, vw_type:str, name:str, template:str = None,
                   autoscaling_min_cluster:int = None, autoscaling_max_cluster:int = None,
-                  service_config_req:str = None, tags:dict = None):
-        if autoscaling_min_cluster == 0 and autoscaling_max_cluster == 0:
-            autoscaling_options = None
-        elif autoscaling_min_cluster == 0 and autoscaling_max_cluster > 0:
-            autoscaling_options = dict(maxClusters=autoscaling_max_cluster)
-        elif autoscaling_min_cluster > 0 and autoscaling_min_cluster == 0:
-            autoscaling_options = dict(minClusters=autoscaling_max_cluster)
-        else:
-            autoscaling_options = dict(minClusters=autoscaling_max_cluster, maxClusters=autoscaling_max_cluster)
+                  common_configs:dict = None, application_configs:dict = None, ldap_groups:list = None,
+                  enable_sso:bool = None, tags:dict = None):
+        # if autoscaling_min_cluster == 0 and autoscaling_max_cluster == 0:
+        #     autoscaling_options = None
+        # elif autoscaling_min_cluster == 0 and autoscaling_max_cluster > 0:
+        #     autoscaling_options = dict(maxClusters=autoscaling_max_cluster)
+        # elif autoscaling_min_cluster > 0 and autoscaling_min_cluster == 0:
+        #     autoscaling_options = dict(minClusters=autoscaling_max_cluster)
+        # else:
+        #     autoscaling_options = dict(minClusters=autoscaling_max_cluster, maxClusters=autoscaling_max_cluster)
+
+        autoscaling = {}
+        if autoscaling_min_cluster != 0:
+            autoscaling['minClusters'] = autoscaling_min_cluster
+        if autoscaling_max_cluster != 0:
+            autoscaling['maxClusters'] = autoscaling_max_cluster
 
         tag_list = []
         for key,value in tags.items():
             tag_list.append({'key': key, 'value': value})
 
+        config = {}
+        if not common_configs is None:
+            config['commonConfigs'] = common_configs
+        if not application_configs is None:
+            config['applicationConfigs'] = application_configs
+        if not ldap_groups is None:
+            config['ldapGroups'] = ldap_groups
+        if not enable_sso is None:
+            config['enableSSO'] = enable_sso
+
         return self.sdk.call(
             svc='dw', func='create_vw', ret_field='vwId', clusterId=cluster_id, dbcId=dbc_id,
-            vwType=vw_type, name=name, template=template, autoscaling=autoscaling_options,
-            config=service_config_req, tags=tag_list
+            vwType=vw_type, name=name, template=template, autoscaling=autoscaling,
+            config=config, tags=tag_list
         )
 
     def create_dbc(self, cluster_id:str, name:str, load_demo_data: bool = None):
