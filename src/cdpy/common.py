@@ -157,7 +157,9 @@ class CdpcliWrapper(object):
             'CREATION_INITIATED',
             'FREEIPA_CREATION_IN_PROGRESS',
             'STARTING',
-            'ENABLING'  # DF
+            'ENABLING',  # DF
+            'provision:started',  # ML
+            'installation:started'  # ML
         ]
 
         self.TERMINATION_STATES = [
@@ -165,6 +167,7 @@ class CdpcliWrapper(object):
             'STACK_DELETION_IN_PROGRESS',
             'FREEIPA_DELETE_IN_PROGRESS',
             'STOPPING',
+            'deprovision:started',  # ML
             'DISABLING'  # DF
         ]
 
@@ -173,6 +176,7 @@ class CdpcliWrapper(object):
             'AVAILABLE',
             'START_IN_PROGRESS',
             'RUNNING',
+            'installation:finished',  # ML
             'Running',  # DW
             'GOOD_HEALTH'  # DF
         ]
@@ -194,14 +198,16 @@ class CdpcliWrapper(object):
             'DELETE_FAILED',
             'Error',  # DW
             'installation:failed',  # ML
-            'BAD_HEALTH',  # DF
+            'deprovision:failed',  # ML
+            'BAD_HEALTH'  # DF
         ]
 
         self.REMOVABLE_STATES = [
             'AVAILABLE', 'UPDATE_FAILED', 'CREATE_FAILED', 'ENABLE_SECURITY_FAILED', 'DELETE_FAILED',
             'DELETE_COMPLETED', 'DELETED_ON_PROVIDER_SIDE', 'STOPPED', 'START_FAILED', 'STOP_FAILED',
+            'installation:failed', 'deprovision:failed', 'installation:finished',  # ML
             'Error', 'Running',  # DW
-            'GOOD_HEALTH', 'CONCERNING_HEALTH', 'BAD_HEALTH'  # DF
+            'GOOD_HEALTH', 'CONCERNING_HEALTH', 'BAD_HEALTH',  # DF
         ]
 
         # common regex patterns
@@ -337,13 +343,17 @@ class CdpcliWrapper(object):
     def _get_path(obj, path):
         value = obj
         for p in path:
-            value = value.get(p)
+            if isinstance(value, dict):
+                value = value.get(p)
+            else:
+                value = None
             if value is None:
                 return None
         return value
 
     def wait_for_state(self, describe_func, params: dict, field: Union[str, None, list] = 'status',
-                       state: Union[list, str, None] = None, delay: int = 15, timeout: int = 3600):
+                       state: Union[list, str, None] = None, delay: int = 15, timeout: int = 3600,
+                       ignore_failures: bool = False):
         """
         Proceses a loop waiting for a given function to achieve a given state or known failure states
 
@@ -356,6 +366,7 @@ class CdpcliWrapper(object):
             state (list, str, None): The state or list of states valid for return from wait function. Defaults to None
             delay (int): Delay in seconds between each poll of the describe_func. Default is 15
             timeout (int): Total wait time in seconds before the function should return a timeout. Default is 3600
+            ignore_failures (bool): Whether to ignore failed states when waiting for a forced deletion
 
         Returns: Output of describe function received during last polling attempt.
         """
@@ -375,22 +386,45 @@ class CdpcliWrapper(object):
             else:
                 if field is not None:
                     current_status = self._get_path(current, field)
-                    if current_status is None:
-                        self.logger.info("Waiting to find field {0} in function {1} response"
-                                        .format(field, describe_func))
-                    elif current_status in state:
-                        return current
-                    elif current_status in self.FAILED_STATES:
-                        status_reason = 'None provided'
-                        for fail_msg_field in ['statusReason', 'failureMessage']:
-                            if fail_msg_field in current:
-                                status_reason = current[fail_msg_field]
+                else:  # field not provided, therefore seek default status fields to check for failures
+                    default_status_fields = [
+                        ['status'],  # Datalake, DW, OpDB, Datahub
+                        ['instanceStatus'],   # ML
+                        ['status', 'state'],  # DF
+                    ]
+                    possible_status = [
+                        self._get_path(current, x) for x in default_status_fields
+                        if x[0] in current
+                    ]
+                    selected_status = [x for x in possible_status if x is not None]
+                    if len(selected_status) > 0:
+                        current_status = selected_status[0]
+                    else:
+                        current_status = None
+                        self.throw_error(
+                            CdpError("Could not determine default status field in response {0}".format(current))
+                        )
+                if current_status is None:
+                    self.logger.info("Waiting to find field {0} in function {1} response"
+                                     .format(field, describe_func))
+                elif current_status in state:
+                    return current
+                elif current_status in self.FAILED_STATES:
+                    status_reason = 'None provided'
+                    for fail_msg_field in ['statusReason', 'failureMessage']:
+                        if fail_msg_field in current:
+                            status_reason = current[fail_msg_field]
+                    if ignore_failures:
+                        self.throw_warning(
+                            CdpWarning("Ignored Failure status '%s' while waiting" % current_status)
+                        )
+                    else:
                         self.throw_error(
                             CdpError("Function {0} with params [{1}] encountered failed state {2} with reason {3}"
-                                    .format(describe_func.__name__, str(params), current_status, status_reason)))
-                    else:
-                        self.logger.info("Waiting for change in {0}: [{1}], current is {2}: {3}"
-                                        .format(describe_func.__name__, str(params), field, current_status))
+                                     .format(describe_func.__name__, str(params), current_status, status_reason)))
+                else:
+                    self.logger.info("Waiting for change in {0}: [{1}], current is {2}: {3}"
+                                     .format(describe_func.__name__, str(params), field, current_status))
             sleep(delay)
         else:
             self.throw_error(
