@@ -181,7 +181,8 @@ class CdpcliWrapper(object):
             'EXTERNAL_DATABASE_STOP_IN_PROGRESS',
             'STOP_IN_PROGRESS',
             'STOPPED',
-            'ENV_STOPPED'
+            'ENV_STOPPED',
+            'NOT_ENABLED'  # DF
         ]
 
         self.FAILED_STATES = [
@@ -193,7 +194,7 @@ class CdpcliWrapper(object):
             'DELETE_FAILED',
             'Error',  # DW
             'installation:failed',  # ML
-            'BAD_HEALTH'  # DF
+            'BAD_HEALTH',  # DF
         ]
 
         self.REMOVABLE_STATES = [
