@@ -127,7 +127,17 @@ class CdpyDw(CdpSdkBase):
             config=config, tags=tag_list
         )
 
+    def delete_vw(self, cluster_id:str, vw_id:str):
+        return self.sdk.call(
+            svc='dw', func='delete_vw', squelch=[Squelch('NOT_FOUND')], clusterId=cluster_id, vwId=vw_id
+        )
+
     def create_dbc(self, cluster_id:str, name:str, load_demo_data: bool = None):
         return self.sdk.call(
             svc='dw', func='create_dbc', clusterId = cluster_id, name=name, loadDemoData = load_demo_data
+        )
+
+    def delete_dbc(self, cluster_id:str, dbc_id:str):
+        return self.sdk.call(
+            svc='dw', func='delete_dbc', squelch=[Squelch('NOT_FOUND')], clusterId=cluster_id, dbcId=dbc_id
         )
