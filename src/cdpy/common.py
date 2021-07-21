@@ -361,9 +361,10 @@ class CdpcliWrapper(object):
             describe_func (func): The status check function to call as it relates to the sdk object,
                 e.g self.cdpy.opdb.describe_database
             params (dict): Parameters the describe_func requires to poll the status, e.g. { name=myname, env=myenv }
-            field (str, None): The field to check in the describe_func output for the state. Use None to check for
+            field (str, None, list): The field to check in the describe_func output for the state. Use None to check for
                 listing removal during deletion. Provide a list of strings for nested structures. Defaults to 'status'
-            state (list, str, None): The state or list of states valid for return from wait function. Defaults to None
+            state (list, str, None): The state or list of states valid for return from wait function, list of states
+                may include None for object removal. Defaults to None.
             delay (int): Delay in seconds between each poll of the describe_func. Default is 15
             timeout (int): Total wait time in seconds before the function should return a timeout. Default is 3600
             ignore_failures (bool): Whether to ignore failed states when waiting for a forced deletion
@@ -379,7 +380,7 @@ class CdpcliWrapper(object):
         while time() < start_time + timeout:
             current = describe_func(**params)
             if current is None:
-                if field is None:
+                if field is None or None in state:
                     return current
                 else:
                     self.logger.info("Waiting for identity {0} to be returned by function {1}")
