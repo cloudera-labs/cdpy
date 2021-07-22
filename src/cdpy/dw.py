@@ -134,7 +134,8 @@ class CdpyDw(CdpSdkBase):
 
     def create_dbc(self, cluster_id:str, name:str, load_demo_data: bool = None):
         return self.sdk.call(
-            svc='dw', func='create_dbc', clusterId = cluster_id, name=name, loadDemoData = load_demo_data
+            svc='dw', func='create_dbc', ret_field='dbcId', clusterId = cluster_id, name=name,
+            loadDemoData = load_demo_data
         )
 
     def delete_dbc(self, cluster_id:str, dbc_id:str):
