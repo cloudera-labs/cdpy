@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from cdpy.common import CdpSdkBase, Squelch
+from cdpy.common import CdpSdkBase, Squelch, CdpError, CdpWarning
 
 
 class CdpyDatahub(CdpSdkBase):
@@ -28,8 +28,25 @@ class CdpyDatahub(CdpSdkBase):
             return [self.describe_cluster(cluster['clusterName']) for cluster in clusters_listing]
         return clusters_listing
 
-    def list_cluster_templates(self):
-        return self.sdk.call(svc='datahub', func='list_cluster_templates', ret_field='clusterTemplates')
+    def list_cluster_templates(self, retries=3, delay=5):
+        # Intermittent timeout issue in CDP 7.2.10, should be reverted to bare listing in 7.2.12
+        resp = self.sdk.call(
+            svc='datahub', func='list_cluster_templates', ret_field='clusterTemplates',
+            ret_error=True
+        )
+        if isinstance(resp, CdpError):
+            if retries > 0:
+                if str(resp.status_code) == '500' and resp.error_code == 'UNKNOWN':
+                    retries = retries - 1
+                    self.sdk.throw_warning(
+                        CdpWarning('Got likely CDP Control Plane eventual consistency error, %d retries left...'
+                                   % (retries))
+                    )
+                    self.sdk.sleep(delay)
+                    return self.list_cluster_templates(retries, delay)
+            else:
+                self.sdk.throw_error(resp)
+        return resp
 
     def describe_cluster_template(self, name):
         return self.sdk.call(svc='datahub', func='describe_cluster_template', ret_field='clusterTemplate', squelch=[

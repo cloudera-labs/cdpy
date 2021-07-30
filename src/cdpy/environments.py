@@ -276,9 +276,9 @@ class CdpyEnvironments(CdpSdkBase):
                 self.sdk.throw_error(resp)
         return resp
 
-    def create_azure_credential(self, name, subscription, tenant, application, secret):
-        return self.sdk.call(
-            svc='environments', func='create_azure_credential', squelch=[
+    def create_azure_credential(self, name, subscription, tenant, application, secret, retries=3, delay=5):
+        resp = self.sdk.call(
+            svc='environments', func='create_azure_credential', ret_error=True, squelch=[
                 Squelch(field='violations', value='Credential already exists with name',
                         warning='Credential with this name already exists', default=None)],
             credentialName=name,
@@ -286,6 +286,22 @@ class CdpyEnvironments(CdpSdkBase):
             tenantId=tenant,
             appBased={'applicationId': application, 'secretKey': secret}
         )
+        if isinstance(resp, CdpError):
+            if retries > 0:
+                consistency_violations = [
+                    'You may have sent your authentication request to the wrong tenant'
+                ]
+                if any(x in str(resp.violations) for x in consistency_violations):
+                    retries = retries - 1
+                    self.sdk.throw_warning(
+                        CdpWarning('Got likely Azure eventual consistency error [%s], %d retries left...'
+                                   % (str(resp.violations), retries))
+                    )
+                    self.sdk.sleep(delay)
+                    return self.create_azure_credential(name, subscription, tenant, application, secret, retries, delay)
+            else:
+                self.sdk.throw_error(resp)
+        return resp
 
     def create_gcp_credential(self, name, key_file):
         return self.sdk.call(

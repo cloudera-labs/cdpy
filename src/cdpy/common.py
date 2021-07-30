@@ -198,6 +198,7 @@ class CdpcliWrapper(object):
             'DELETE_FAILED',
             'Error',  # DW
             'installation:failed',  # ML
+            'provision:failed',  # ML
             'deprovision:failed',  # ML
             'BAD_HEALTH'  # DF
         ]
