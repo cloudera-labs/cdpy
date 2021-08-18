@@ -20,7 +20,7 @@ from cdpcli import VERSION
 from cdpcli.client import ClientCreator, Context
 from cdpcli.credentials import Credentials
 from cdpcli.endpoint import EndpointCreator, EndpointResolver
-from cdpcli.exceptions import ClientError, ParamValidationError
+from cdpcli.exceptions import ClientError, ParamValidationError, ValidationError
 from cdpcli.loader import Loader
 from cdpcli.parser import ResponseParserFactory
 from cdpcli.retryhandler import create_retry_handler
@@ -46,6 +46,20 @@ class CdpError(Exception):
         self.service = None
         self.operation = None
         self.request_id = None
+
+        if isinstance(self.base_error, AttributeError):
+            self.rc = 1
+            self.status_code = '404'
+            self.error_code = "LOCAL_NOT_IMPLEMENTED"
+            self.violations = self.message = str(self.base_error) + ". The installed CDPCLI does not support this call."
+
+        if isinstance(self.base_error, ValidationError):
+            self.message = self.violations = str(self.base_error) + ". The installed CDPCLI does not support this call."
+            self.rc = 1
+            self.status_code = '404'
+            self.operation = self.base_error.kwargs['param']
+            self.service = self.base_error.kwargs['value']
+            self.error_code = 'LOCAL_NOT_IMPLEMENTED'
 
         if isinstance(self.base_error, ClientError):
             _CLIENT_ERROR_PATTERN = re.compile(
@@ -81,6 +95,16 @@ class CdpError(Exception):
             self.violations = _violations
             self.message = "Parameter validation error"
             self.error_code = 'PARAMETER_VALIDATION_ERROR'
+
+        # Handle instance where client calls function not found in remote CDP Control Plane
+        if self.status_code == '404' \
+                and self.error_code == 'UNKNOWN_ERROR' \
+                and 'HTTP ERROR 404 Not Found' in self.message:
+            self.error_code = "REMOTE_NOT_IMPLEMENTED"
+            self.violations = "Function {0} in Remote Service {1} was not found. " \
+                              "Your connected CDP Control Plane may not support this call. " \
+                              "Rerun this call with strict_errors enabled to get full traceback." \
+                              .format(self.operation, self.service)
 
         super().__init__(base_error, *args)
 
@@ -507,14 +531,6 @@ class CdpcliWrapper(object):
 
             return resp
 
-        # Handle case where CDPCLI being wrapped by cdpy does not have the requested function
-        except AttributeError as raw_func_err:
-            parsed_func_error = CdpError(raw_func_err)
-            parsed_func_error.error_code = "LOCAL_NOT_IMPLEMENTED"
-            parsed_func_error.violations = "Service {0} has no function {1}. " \
-                                           "The installed CDPCLI does not support this call." \
-                .format(svc, func)
-            self.throw_error(parsed_func_error)
         except Exception as err:
             # Note that the cascade of behaviors here is designed to be convenient for Ansible module development
             parsed_err = CdpError(err)
@@ -524,16 +540,7 @@ class CdpcliWrapper(object):
             if self.strict_errors is True:
                 self.throw_error(parsed_err)
             if isinstance(err, ClientError):
-                # Handle instance where client calls function not found in remote CDP Control Plane
-                if parsed_err.status_code == '404' \
-                        and parsed_err.error_code == 'UNKNOWN_ERROR' \
-                        and 'HTTP ERROR 404 Not Found' in parsed_err.message:
-                    parsed_err.error_code = "REMOTE_NOT_IMPLEMENTED"
-                    parsed_err.violations = "Function {0} in Remote Service {1} was not found. " \
-                                            "Your connected CDP Control Plane may not support this call. " \
-                                            "Rerun this call with strict_errors enabled to get full traceback."\
-                        .format(parsed_err.operation, parsed_err.service)
-                elif squelch is not None:
+                if squelch is not None:
                     for item in squelch:
                         if item.value in str(parsed_err.__getattribute__(item.field)):
                             warning = item.warning if item.warning is not None else str(parsed_err.violations)
