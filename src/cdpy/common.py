@@ -20,7 +20,7 @@ from cdpcli import VERSION
 from cdpcli.client import ClientCreator, Context
 from cdpcli.credentials import Credentials
 from cdpcli.endpoint import EndpointCreator, EndpointResolver
-from cdpcli.exceptions import ClientError
+from cdpcli.exceptions import ClientError, ParamValidationError
 from cdpcli.loader import Loader
 from cdpcli.parser import ResponseParserFactory
 from cdpcli.retryhandler import create_retry_handler
@@ -65,12 +65,22 @@ class CdpError(Exception):
             except KeyError:
                 self.error_code = ''
             self.violations = _violations
-            self.message = _violations
+            self.message = "Client request error"
             self.status_code = _payload.group(1)
             self.rc = 1
             self.service = _payload.group(3)
             self.operation = _payload.group(4)
             self.request_id = _payload.group(5)
+
+        if isinstance(self.base_error, ParamValidationError):
+            _PARAM_ERROR_PATTERN = re.compile(
+                r"Parameter validation failed:\n([\s\S]*)"
+            )
+            _payload = re.search(_PARAM_ERROR_PATTERN, str(self.base_error))
+            _violations = _payload.group(1).split('\n')
+            self.violations = _violations
+            self.message = "Parameter validation error"
+            self.error_code = 'PARAMETER_VALIDATION_ERROR'
 
         super().__init__(base_error, *args)
 
@@ -186,6 +196,7 @@ class CdpcliWrapper(object):
             'STOP_IN_PROGRESS',
             'STOPPED',
             'ENV_STOPPED',
+            'Stopped', # DW
             'NOT_ENABLED'  # DF
         ]
 
@@ -207,7 +218,7 @@ class CdpcliWrapper(object):
             'AVAILABLE', 'UPDATE_FAILED', 'CREATE_FAILED', 'ENABLE_SECURITY_FAILED', 'DELETE_FAILED',
             'DELETE_COMPLETED', 'DELETED_ON_PROVIDER_SIDE', 'STOPPED', 'START_FAILED', 'STOP_FAILED',
             'installation:failed', 'deprovision:failed', 'installation:finished',  # ML
-            'Error', 'Running',  # DW
+            'Error', 'Running', 'Stopped', 'Deleting',  # DW
             'GOOD_HEALTH', 'CONCERNING_HEALTH', 'BAD_HEALTH',  # DF
         ]
 
