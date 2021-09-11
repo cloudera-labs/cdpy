@@ -112,7 +112,7 @@ class StaticCredentials(Credentials):
 
 class CdpcliWrapper(object):
     def __init__(self, debug=False, tls_verify=False, strict_errors=False, tls_warnings=False, client_endpoint=None,
-                 cdp_credentials=None, error_handler=None, warning_handler=None, scrub_inputs=True):
+                 cdp_credentials=None, error_handler=None, warning_handler=None, scrub_inputs=True, cp_region='default'):
         # Init Params
         self.debug = debug
         self.tls_verify = tls_verify
@@ -121,6 +121,7 @@ class CdpcliWrapper(object):
         self.client_endpoint = client_endpoint
         self.cdp_credentials = cdp_credentials
         self.scrub_inputs = scrub_inputs
+        self.cp_region = cp_region
 
         # Setup
         self.throw_error = error_handler if error_handler else self._default_throw_error
@@ -260,12 +261,23 @@ class CdpcliWrapper(object):
     def _build_client(self, service):
         if not self.cdp_credentials:
             self.cdp_credentials = self._client_creator.context.get_credentials()
-        return self._client_creator.create_client(
-            service,
-            self.client_endpoint,
-            self.tls_verify,
-            self.cdp_credentials
-        )
+        try:
+            # region introduced in client version 0.9.42
+            client = self._client_creator.create_client(
+                service_name=service,
+                region=self.cp_region,
+                explicit_endpoint_url=self.client_endpoint,
+                tls_verification=self.tls_verify,
+                credentials=self.cdp_credentials
+            )
+        except TypeError:
+            client = self._client_creator.create_client(
+                service_name=service,
+                explicit_endpoint_url=self.client_endpoint,
+                tls_verification=self.tls_verify,
+                credentials=self.cdp_credentials
+            )
+        return client
 
     @staticmethod
     def _default_throw_error(error: 'CdpError'):
