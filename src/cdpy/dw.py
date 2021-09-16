@@ -11,7 +11,7 @@ class CdpyDw(CdpSdkBase):
         return self.sdk.call(
             svc='dw', func='list_dbcs', ret_field='dbcs', squelch=[
                 Squelch(value='NOT_FOUND', default=list()),
-                Squelch(field='status_code', value='504', default=list(), warning="No dbcs in this Cluster"),
+                Squelch(field='status_code', value='504', default=list(), warning="No Data Catalogs found in this Cluster"),
             ],
             clusterId=cluster_id
         )
@@ -20,7 +20,7 @@ class CdpyDw(CdpSdkBase):
         return self.sdk.call(
             svc='dw', func='list_vws', ret_field='vws', squelch=[
                 Squelch(value='NOT_FOUND', default=list()),
-                Squelch(field='status_code', value='504', default=list(), warning="No vws in this Cluster"),
+                Squelch(field='status_code', value='504', default=list(), warning="No Virtual Warehouses found in this Cluster"),
             ],
             clusterId=cluster_id
         )
@@ -36,7 +36,7 @@ class CdpyDw(CdpSdkBase):
     def describe_vw(self, cluster_id, vw_id):
         return self.sdk.call(
             svc='dw', func='describe_vw', ret_field='vw', squelch=[
-                Squelch('NOT_FOUND'), Squelch('INVALID_ARGUMENT')
+                Squelch('NOT_FOUND'), Squelch('INVALID_ARGUMENT'), Squelch('UNKNOWN')
             ],
             clusterId=cluster_id,
             vwId=vw_id
@@ -45,7 +45,7 @@ class CdpyDw(CdpSdkBase):
     def describe_dbc(self, cluster_id, dbc_id):
         return self.sdk.call(
             svc='dw', func='describe_dbc', ret_field='dbc', squelch=[
-                Squelch('NOT_FOUND'), Squelch('INVALID_ARGUMENT')
+                Squelch('NOT_FOUND'), Squelch('INVALID_ARGUMENT'), Squelch('UNKNOWN')
             ],
             clusterId=cluster_id,
             dbcId=dbc_id
@@ -98,40 +98,45 @@ class CdpyDw(CdpSdkBase):
         )
 
     def create_vw(self, cluster_id:str, dbc_id:str, vw_type:str, name:str, template:str = None,
-                  autoscaling_min_cluster:int = None, autoscaling_max_cluster:int = None,
-                  common_configs:dict = None, application_configs:dict = None, ldap_groups:list = None,
-                  enable_sso:bool = None, tags:dict = None):
-        autoscaling = {}
-        if autoscaling_min_cluster != 0:
-            autoscaling['minClusters'] = autoscaling_min_cluster
-        if autoscaling_max_cluster != 0:
-            autoscaling['maxClusters'] = autoscaling_max_cluster
+                  autoscaling_min_cluster:int = 1, autoscaling_max_cluster:int = 20,
+                  common_configs:dict = {}, application_configs:dict = {}, ldap_groups:list = [],
+                  enable_sso:bool = False, tags:dict = {}):
+        if autoscaling_min_cluster is not None or autoscaling_max_cluster is not None:
+            autoscaling = {}
+            if autoscaling_min_cluster is not None:
+                autoscaling['minClusters'] = autoscaling_min_cluster
+            if autoscaling_max_cluster is not None:
+                autoscaling['maxClusters'] = autoscaling_max_cluster
+        else:
+            autoscaling = None
 
-        tag_list = []
-        for key,value in tags.items():
-            tag_list.append({'key': key, 'value': value})
+        if tags:
+            tag_list = []
+            for key,value in tags.items():
+                tag_list.append({'key': key, 'value': value})
+        else:
+            tag_list = None
 
         config = {}
-        if not common_configs is None and not common_configs:
+        config['enableSSO'] = enable_sso
+        if common_configs:
             config['commonConfigs'] = common_configs
-        if not application_configs is None and not application_configs:
+        if application_configs:
             config['applicationConfigs'] = application_configs
-        if not ldap_groups is None and not ldap_groups:
+        if ldap_groups:
             config['ldapGroups'] = ldap_groups
-        if not enable_sso is None:
-            config['enableSSO'] = enable_sso
 
         return self.sdk.call(
             svc='dw', func='create_vw', ret_field='vwId', clusterId=cluster_id, dbcId=dbc_id,
-            vwType=vw_type, name=name, template=template, autoscaling=autoscaling,
-            config=config, tags=tag_list
+            vwType=vw_type, name=name, template=template, autoscaling=autoscaling, config=config,
+            tags=tag_list, squelch=[Squelch('INVALID_ARGUMENT')],
         )
 
     def delete_vw(self, cluster_id:str, vw_id:str):
         return self.sdk.call(
             svc='dw', func='delete_vw', squelch=[Squelch('NOT_FOUND')], clusterId=cluster_id, vwId=vw_id
         )
-
+        
     def create_dbc(self, cluster_id:str, name:str, load_demo_data: bool = None):
         return self.sdk.call(
             svc='dw', func='create_dbc', ret_field='dbcId', clusterId = cluster_id, name=name,
