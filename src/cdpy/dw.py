@@ -104,9 +104,9 @@ class CdpyDw(CdpSdkBase):
         
         if any(x is not None for x in [autoscaling_min_cluster, autoscaling_max_cluster]):
             autoscaling = {}
-            if autoscaling_min_cluster != 0:
+            if autoscaling_min_cluster is not None and autoscaling_min_cluster != 0:
                 autoscaling['minClusters'] = autoscaling_min_cluster
-            if autoscaling_max_cluster != 0:
+            if autoscaling_max_cluster is not None and autoscaling_max_cluster != 0:
                 autoscaling['maxClusters'] = autoscaling_max_cluster
         else:
             autoscaling = None
