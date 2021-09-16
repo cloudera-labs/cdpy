@@ -134,7 +134,7 @@ class CdpyDw(CdpSdkBase):
         return self.sdk.call(
             svc='dw', func='create_vw', ret_field='vwId', clusterId=cluster_id, dbcId=dbc_id,
             vwType=vw_type, name=name, template=template, autoscaling=autoscaling, config=config,
-            tags=tag_list, squelch=[Squelch('INVALID_ARGUMENT')],
+            tags=tag_list
         )
 
     def delete_vw(self, cluster_id:str, vw_id:str):
