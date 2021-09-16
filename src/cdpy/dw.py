@@ -98,33 +98,38 @@ class CdpyDw(CdpSdkBase):
         )
 
     def create_vw(self, cluster_id:str, dbc_id:str, vw_type:str, name:str, template:str = None,
-                  autoscaling_min_cluster:int = 1, autoscaling_max_cluster:int = 20,
-                  common_configs:dict = {}, application_configs:dict = {}, ldap_groups:list = [],
-                  enable_sso:bool = False, tags:dict = {}):
-        if autoscaling_min_cluster is not None or autoscaling_max_cluster is not None:
+                  autoscaling_min_cluster:int = None, autoscaling_max_cluster:int = None,
+                  common_configs:dict = None, application_configs:dict = None, ldap_groups:list = None,
+                  enable_sso:bool = None, tags:dict = None):
+        
+        if any(x is not None for x in [autoscaling_min_cluster, autoscaling_max_cluster]):
             autoscaling = {}
-            if autoscaling_min_cluster is not None:
+            if autoscaling_min_cluster != 0:
                 autoscaling['minClusters'] = autoscaling_min_cluster
-            if autoscaling_max_cluster is not None:
+            if autoscaling_max_cluster != 0:
                 autoscaling['maxClusters'] = autoscaling_max_cluster
         else:
             autoscaling = None
 
-        if tags:
+        if tags is not None:
             tag_list = []
             for key,value in tags.items():
                 tag_list.append({'key': key, 'value': value})
         else:
             tag_list = None
 
-        config = {}
-        config['enableSSO'] = enable_sso
-        if common_configs:
-            config['commonConfigs'] = common_configs
-        if application_configs:
-            config['applicationConfigs'] = application_configs
-        if ldap_groups:
-            config['ldapGroups'] = ldap_groups
+        if any(x is not None for x in [common_configs, application_configs, ldap_groups, enable_sso]):
+            config = {}
+            if common_configs is not None and not common_configs:
+                config['commonConfigs'] = common_configs
+            if application_configs is not None and not application_configs:
+                config['applicationConfigs'] = application_configs
+            if ldap_groups is not None and not ldap_groups:
+                config['ldapGroups'] = ldap_groups
+            if enable_sso is not None:
+                config['enableSSO'] = enable_sso
+        else:
+            config = None
 
         return self.sdk.call(
             svc='dw', func='create_vw', ret_field='vwId', clusterId=cluster_id, dbcId=dbc_id,
