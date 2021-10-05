@@ -218,7 +218,7 @@ class CdpcliWrapper(object):
         self.REMOVABLE_STATES = [
             'AVAILABLE', 'UPDATE_FAILED', 'CREATE_FAILED', 'ENABLE_SECURITY_FAILED', 'DELETE_FAILED',
             'DELETE_COMPLETED', 'DELETED_ON_PROVIDER_SIDE', 'STOPPED', 'START_FAILED', 'STOP_FAILED',
-            'installation:failed', 'deprovision:failed', 'installation:finished',  # ML
+            'installation:failed', 'deprovision:failed', 'installation:finished', 'modify:finished',  # ML
             'Error', 'Running', 'Stopped', 'Deleting',  # DW
             'GOOD_HEALTH', 'CONCERNING_HEALTH', 'BAD_HEALTH',  # DF
         ]
