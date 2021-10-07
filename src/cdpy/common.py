@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+import pkg_resources
 from time import time, sleep
 import html
 import io
@@ -16,7 +17,7 @@ from json import JSONDecodeError
 from typing import Union
 
 import cdpcli
-from cdpcli import VERSION
+from cdpcli import VERSION as CDPCLI_VERSION
 from cdpcli.client import ClientCreator, Context
 from cdpcli.credentials import Credentials
 from cdpcli.endpoint import EndpointCreator, EndpointResolver
@@ -136,7 +137,8 @@ class StaticCredentials(Credentials):
 
 class CdpcliWrapper(object):
     def __init__(self, debug=False, tls_verify=False, strict_errors=False, tls_warnings=False, client_endpoint=None,
-                 cdp_credentials=None, error_handler=None, warning_handler=None, scrub_inputs=True, cp_region='default'):
+                 cdp_credentials=None, error_handler=None, warning_handler=None, scrub_inputs=True, cp_region='default',
+                 client_name=None):
         # Init Params
         self.debug = debug
         self.tls_verify = tls_verify
@@ -146,6 +148,7 @@ class CdpcliWrapper(object):
         self.cdp_credentials = cdp_credentials
         self.scrub_inputs = scrub_inputs
         self.cp_region = cp_region
+        self.client_name = client_name if client_name is not None else 'CDPY'
 
         # Setup
         self.throw_error = error_handler if error_handler else self._default_throw_error
@@ -254,12 +257,15 @@ class CdpcliWrapper(object):
         self.CREDENTIAL_NAME_PATTERN = re.compile(r'[^a-z0-9-]')
         self.OPERATION_REGEX = re.compile(r'operation ([0-9a-zA-Z-]{36}) running')
 
-    @staticmethod
-    def _make_user_agent_header():
-        return 'CDPSDK/%s Python/%s %s/%s' % (VERSION,
-                                              platform.python_version(),
-                                              platform.system(),
-                                              platform.release())
+    def _make_user_agent_header(self):
+        cdpy_version = pkg_resources.get_distribution('cdpy').version
+        return '%s CDPY/%s CDPCLI/%s Python/%s %s/%s' % (
+            self.client_name,
+            cdpy_version,
+            CDPCLI_VERSION,
+            platform.python_version(),
+            platform.system(),
+            platform.release())
 
     @staticmethod
     def _load_retry_config(loader):
