@@ -138,7 +138,7 @@ class StaticCredentials(Credentials):
 class CdpcliWrapper(object):
     def __init__(self, debug=False, tls_verify=False, strict_errors=False, tls_warnings=False, client_endpoint=None,
                  cdp_credentials=None, error_handler=None, warning_handler=None, scrub_inputs=True, cp_region='default',
-                 client_name=None):
+                 agent_header=None):
         # Init Params
         self.debug = debug
         self.tls_verify = tls_verify
@@ -148,7 +148,7 @@ class CdpcliWrapper(object):
         self.cdp_credentials = cdp_credentials
         self.scrub_inputs = scrub_inputs
         self.cp_region = cp_region
-        self.client_name = client_name if client_name is not None else 'CDPY'
+        self.agent_header = agent_header if agent_header is not None else 'CDPY'
 
         # Setup
         self.throw_error = error_handler if error_handler else self._default_throw_error
@@ -224,7 +224,7 @@ class CdpcliWrapper(object):
             'STOP_IN_PROGRESS',
             'STOPPED',
             'ENV_STOPPED',
-            'Stopped', # DW
+            'Stopped',  # DW
             'NOT_ENABLED'  # DF
         ]
 
@@ -260,7 +260,7 @@ class CdpcliWrapper(object):
     def _make_user_agent_header(self):
         cdpy_version = pkg_resources.get_distribution('cdpy').version
         return '%s CDPY/%s CDPCLI/%s Python/%s %s/%s' % (
-            self.client_name,
+            self.agent_header,
             cdpy_version,
             CDPCLI_VERSION,
             platform.python_version(),
