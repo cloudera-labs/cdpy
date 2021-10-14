@@ -241,7 +241,18 @@ class CdpcliWrapper(object):
             'installation:failed',  # ML
             'provision:failed',  # ML
             'deprovision:failed',  # ML
-            'BAD_HEALTH'  # DF
+            'BAD_HEALTH',  # DF
+            # DE (all possibly intermediate failure states, until CDE exposes a higher-level summary state)
+            'ClusterChartInstallationFailed', 'ClusterDNSCreationFailed', 'ClusterDNSDeletionFailed',
+            'ClusterIngressCreationFailed', 'ClusterProvisioningFailed', 'DBProvisioningFailed',
+            'FSMountTargetsCreationFailed', 'FSProvisioningFailed', 'ClusterTLSCertCreationFailed',
+            'ClusterServiceMeshProvisioningFailed', 'ClusterMonitoringConfigurationFailed',
+            'ClusterChartDeletionFailed', 'ClusterDeletionFailed', 'ClusterNamespaceDeletionFailed',
+            'DBDeletionFailed', 'FSMountTargetsDeletionFailed', 'FSDeletionFailed',
+            'ClusterTLSCertDeletionFailed', 'ClusterServiceMeshDeletionFailed',
+            'ClusterAccessGroupCreationFailed', 'ClusterAccessGroupDeletionFailed',
+            'ClusterUserSyncCheckFailed', 'ClusterCreationFailed', 'ClusterDeleteFromDBFailed',
+            'ClusterMaintenanceFailed', 'ClusterTLSCertRenewalFailed'
         ]
 
         self.REMOVABLE_STATES = [
