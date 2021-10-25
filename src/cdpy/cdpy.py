@@ -10,6 +10,7 @@ from cdpy.environments import CdpyEnvironments
 from cdpy.datahub import CdpyDatahub
 from cdpy.datalake import CdpyDatalake
 from cdpy.ml import CdpyMl
+from cdpy.de import CdpyDe
 from cdpy.opdb import CdpyOpdb
 from cdpy.dw import CdpyDw
 from cdpy.df import CdpyDf
@@ -24,6 +25,8 @@ class Cdpy(CdpSdkBase):
         self.datahub = CdpyDatahub(*args, **kwargs)
         self.datalake = CdpyDatalake(*args, **kwargs)
         self.ml = CdpyMl(*args, **kwargs)
+        self.de = CdpyDe(*args, **kwargs)
         self.opdb = CdpyOpdb(*args, **kwargs)
         self.dw = CdpyDw(*args, **kwargs)
         self.df = CdpyDf(*args, **kwargs)
+        self.de = CdpyDe(*args, **kwargs)
