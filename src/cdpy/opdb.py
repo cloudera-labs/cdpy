@@ -49,3 +49,21 @@ class CdpyOpdb(CdpSdkBase):
             databaseName=name,
             environmentName=env,
         )
+
+    def start_database(self, name, env):
+        return self.sdk.call(
+            svc='opdb', func='start_database', squelch=[
+                Squelch('NOT_FOUND'),
+            ],
+            databaseName=name,
+            environmentName=env,
+        )
+
+    def stop_database(self, name, env):
+        return self.sdk.call(
+            svc='opdb', func='stop_database', squelch=[
+                Squelch('NOT_FOUND'),
+            ],
+            databaseName=name,
+            environmentName=env,
+        )
