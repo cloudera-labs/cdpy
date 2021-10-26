@@ -25,8 +25,8 @@ class CdpyDe(CdpSdkBase):
             clusterId=cluster_id
         )
 
-    def create_vc(self, name, cluster_id, cpu_requests, memory_requests,
-                  chart_value_overrides=None, runtime_spot_component=None):
+    def create_vc(self, name, cluster_id, cpu_requests, memory_requests, chart_value_overrides=None,
+                  runtime_spot_component=None, spark_version=None, acl_users=None):
         return self.sdk.call(
             svc='de', func='create_vc', ret_field='Vc',
             name=name,
@@ -34,7 +34,9 @@ class CdpyDe(CdpSdkBase):
             cpuRequests=cpu_requests,
             memoryRequests=memory_requests,
             chartValueOverrides=chart_value_overrides,
-            runtimeSpotComponent=runtime_spot_component
+            runtimeSpotComponent=runtime_spot_component,
+            sparkVersion=spark_version,
+            aclUsers=acl_users
         )
 
     def delete_vc(self, cluster_id, vc_id):
@@ -95,3 +97,20 @@ class CdpyDe(CdpSdkBase):
             svc='de', func='get_kubeconfig', ret_field='kubeconfig', squelch=[Squelch('NOT_FOUND')],
             clusterId=cluster_id
         )
+
+    def get_service_id_by_name(self, name, env):
+        cluster_id = None
+        for service in self.list_services(env, remove_deleted=True):
+            if service['name'] == name:
+                cluster_id = service['clusterId']
+                break
+        return cluster_id
+
+    def get_vc_id_by_name(self, name, cluster_id, remove_deleted=True):
+        vc_id = None
+        for vc in self.list_vcs(cluster_id):
+            vc_stopped = vc['status'] in self.sdk.STOPPED_STATES
+            if vc['vcName'] == name and (not vc_stopped if remove_deleted else True):
+                vc_id = vc['vcId']
+                break
+        return vc_id

@@ -227,7 +227,8 @@ class CdpcliWrapper(object):
             'ENV_STOPPED',
             'Stopped', # DW
             'NOT_ENABLED',  # DF
-            'ClusterDeletionCompleted' # DE
+            'ClusterDeletionCompleted', 'AppDeleted' # DE
+
         ]
 
         self.FAILED_STATES = [
@@ -242,7 +243,7 @@ class CdpcliWrapper(object):
             'provision:failed',  # ML
             'deprovision:failed',  # ML
             'BAD_HEALTH',  # DF
-            # DE (all possibly intermediate failure states, until CDE exposes a higher-level summary state)
+            # DE service (all intermediate failure states, until CDE exposes a higher-level summary state)
             'ClusterChartInstallationFailed', 'ClusterDNSCreationFailed', 'ClusterDNSDeletionFailed',
             'ClusterIngressCreationFailed', 'ClusterProvisioningFailed', 'DBProvisioningFailed',
             'FSMountTargetsCreationFailed', 'FSProvisioningFailed', 'ClusterTLSCertCreationFailed',
@@ -252,7 +253,9 @@ class CdpcliWrapper(object):
             'ClusterTLSCertDeletionFailed', 'ClusterServiceMeshDeletionFailed',
             'ClusterAccessGroupCreationFailed', 'ClusterAccessGroupDeletionFailed',
             'ClusterUserSyncCheckFailed', 'ClusterCreationFailed', 'ClusterDeleteFromDBFailed',
-            'ClusterMaintenanceFailed', 'ClusterTLSCertRenewalFailed'
+            'ClusterMaintenanceFailed', 'ClusterTLSCertRenewalFailed',
+             # DE virtual cluster
+             'AppInstallationFailed', 'AppDeletionFailed'
         ]
 
         self.REMOVABLE_STATES = [
@@ -261,7 +264,7 @@ class CdpcliWrapper(object):
             'installation:failed', 'deprovision:failed', 'installation:finished', 'modify:finished',  # ML
             'Error', 'Running', 'Stopped', 'Deleting',  # DW
             'GOOD_HEALTH', 'CONCERNING_HEALTH', 'BAD_HEALTH',  # DF
-            'ClusterCreationCompleted' #DE
+            'ClusterCreationCompleted', 'AppInstalled' #DE
         ]
 
         # common regex patterns
