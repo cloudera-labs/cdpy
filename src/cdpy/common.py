@@ -264,7 +264,7 @@ class CdpcliWrapper(object):
             'installation:failed', 'deprovision:failed', 'installation:finished', 'modify:finished',  # ML
             'Error', 'Running', 'Stopped', 'Deleting',  # DW
             'GOOD_HEALTH', 'CONCERNING_HEALTH', 'BAD_HEALTH',  # DF
-            'ClusterCreationCompleted', 'AppInstalled' #DE
+            'ClusterCreationCompleted', 'AppInstalled', 'ClusterProvisioningFailed'  #DE
         ]
 
         # common regex patterns
