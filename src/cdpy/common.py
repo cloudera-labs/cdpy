@@ -393,12 +393,14 @@ class CdpcliWrapper(object):
             check_strings += [':df:', ':service:']
         if crn_type == 'flow':
             check_strings += [':df:', ':flow:']
+        if crn_type == 'readyflow':
+            check_strings += [':df:', 'readyFlow']
         if crn_type == 'deployment':
             check_strings += [':df:', ':deployment:']
         for substring in check_strings:
-            if substring not in obj:
-                self.throw_error(CdpError("Supplied crn %s of proposed type %s is missing substring %s"
-                                          % (str(obj), crn_type, substring)))
+                if substring not in obj:
+                    self.throw_error(CdpError("Supplied crn %s of proposed type %s is missing substring %s"
+                                              % (str(obj), crn_type, substring)))
 
     @staticmethod
     def sleep(seconds):
