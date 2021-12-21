@@ -66,7 +66,7 @@ class CdpyDf(CdpSdkBase):
 
     def enable_service(self, env_crn: str, lb_ips: list = None, min_nodes: int = 3, max_nodes: int = 3,
                        enable_public_ip: bool = True, kube_ips: list = None, cluster_subnets: list = None,
-                       lb_subnets: list = None, tags: list = None):
+                       lb_subnets: list = None, tags: dict = None):
         self.sdk.validate_crn(env_crn)
         return self.sdk.call(
             svc='df', func='enable_service', ret_field='service',
@@ -157,18 +157,51 @@ class CdpyDf(CdpSdkBase):
             result = [x for x in result if x['name'] == name]
         return result
 
+    def describe_readyflow(self, def_crn):
+        # Describes readyFlow not added to the Catalog
+        self.sdk.validate_crn(def_crn, 'readyflow')
+        return self.sdk.call(
+            svc='df', func='describe_readyflow', ret_field='readyflowDetail', squelch=[
+                Squelch(value='NOT_FOUND',
+                        warning='No ReadyFlow Definition with crn %s found' % def_crn)
+            ],
+            readyflowCrn=def_crn
+        )
+
+    def import_readyflow(self, def_crn):
+        # Imports a Readyflow from the Control Plane into the Tenant Flow Catalog
+        self.sdk.validate_crn(def_crn, 'readyflow')
+        return self.sdk.call(
+            svc='df', func='add_readyflow', ret_field='addedReadyflowDetail', squelch=[
+                Squelch(value='NOT_FOUND',
+                        warning='No ReadyFlow Definition with crn %s found' % def_crn)
+            ],
+            readyflowCrn=def_crn
+        )
+
+    def delete_added_readyflow(self, def_crn):
+        # Deletes an added Readyflow from the Tenant Flow Catalog
+        self.sdk.validate_crn(def_crn, 'readyflow')
+        return self.sdk.call(
+            svc='df', func='delete_added_readyflow', ret_field='readyflowDetail', squelch=[
+                Squelch(value='NOT_FOUND',
+                        warning='No ReadyFlow Definition with crn %s found' % def_crn)
+            ],
+            readyflowCrn=def_crn
+        )
+
     def describe_added_readyflow(self, def_crn, sort_versions=True):
         # Describes readyFlows added to the Catalog
         self.sdk.validate_crn(def_crn, 'readyflow')
         result = self.sdk.call(
-            svc='df', func='describe_added_readyflow', ret_field='readyflowDetail', squelch=[
+            svc='df', func='describe_added_readyflow', ret_field='addedReadyflowDetail', squelch=[
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlow Definition with crn %s found' % def_crn)
             ],
             readyflowCrn=def_crn
         )
         out = result
-        if sort_versions:
+        if sort_versions and out:
             out['versions'] = sorted(result['versions'], key=lambda d: d['version'], reverse=True)
         return out
 
@@ -182,7 +215,7 @@ class CdpyDf(CdpSdkBase):
             flowCrn=def_crn
         )
         out = result
-        if sort_versions:
+        if sort_versions and out:
             out['versions'] = sorted(result['versions'], key=lambda d: d['version'], reverse=True)
         return out
 
@@ -240,7 +273,7 @@ class CdpyDf(CdpSdkBase):
         if size_name is not None and size_name not in self.DEPLOYMENT_SIZES:
             self.sdk.throw_error(CdpError("Deployment size_name %s not in supported size list: %s"
                                           % (size_name, str(self.DEPLOYMENT_SIZES))))
-        _ = [self.sdk.validate_crn(x[0], x[1]) for x in [(df_crn, 'df'), (flow_ver_crn, 'flow')]]
+        self.sdk.validate_crn(df_crn, 'df')
         if self.list_deployments(name=deployment_name):
             self.sdk.throw_error(CdpError("Deployment already exists with conflicting name %s" % deployment_name))
         # Setup
