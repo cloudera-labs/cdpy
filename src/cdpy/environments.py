@@ -149,13 +149,11 @@ class CdpyEnvironments(CdpSdkBase):
         )
 
     def delete_environment(self, name, cascade=False, force=False):
-        if cascade:
-            self.sdk.throw_warning(CdpWarning('Cascading Environment deletions currently not supported'))
-        if force:
-            self.sdk.throw_warning(CdpWarning('Forced Environment deletions currently not supported'))
         return self.sdk.call(
             svc='environments', func='delete_environment', ret_field='environment',
-            environmentName=name
+            environmentName=name,
+            cascading=cascade,
+            forced=force
         )
 
     def start_environment(self, name):
