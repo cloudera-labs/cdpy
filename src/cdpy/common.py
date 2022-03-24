@@ -279,6 +279,16 @@ class CdpcliWrapper(object):
         # Workload services with special credential and endpoint handling
         self.WORKLOAD_SERVICES = ['dfworkload']
 
+        # substrings to check for in different CRNs
+        self.CRN_STRINGS = {
+            'generic': ['crn:'],
+            'env': [':environments:', ':environment:'],
+            'df': [':df:', ':service:'],
+            'flow': [':df:', ':flow:'],
+            'readyflow': [':df:', 'readyFlow'],
+            'deployment': [':df:', ':deployment:']
+        }
+
     def _make_user_agent_header(self):
         cdpy_version = pkg_resources.get_distribution('cdpy').version
         return '%s CDPY/%s CDPCLI/%s Python/%s %s/%s' % (
@@ -383,21 +393,8 @@ class CdpcliWrapper(object):
     def regex_search(pattern, obj):
         return re.search(pattern, obj)
 
-    def validate_crn(self, obj: str, crn_type=None):
-        # TODO: Rework with check_strings as pass through from module
-        check_strings = ['crn:']
-        crn_type = crn_type if crn_type is not None else 'generic'
-        if crn_type == 'env':
-            check_strings += [':environments:', ':environment:']
-        if crn_type == 'df':
-            check_strings += [':df:', ':service:']
-        if crn_type == 'flow':
-            check_strings += [':df:', ':flow:']
-        if crn_type == 'readyflow':
-            check_strings += [':df:', 'readyFlow']
-        if crn_type == 'deployment':
-            check_strings += [':df:', ':deployment:']
-        for substring in check_strings:
+    def validate_crn(self, obj: str, crn_type='generic'):
+        for substring in self.CRN_STRINGS[crn_type]:
             if substring not in obj:
                 self.throw_error(CdpError("Supplied crn %s of proposed type %s is missing substring %s"
                                           % (str(obj), crn_type, substring)))

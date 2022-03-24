@@ -28,6 +28,7 @@ class CdpyDf(CdpSdkBase):
         return result
 
     def describe_service(self, df_crn: str = None, env_crn: str = None):
+        resolved_df_crn = None
         if df_crn is not None:
             resolved_df_crn = df_crn
         elif env_crn is not None:
@@ -37,24 +38,25 @@ class CdpyDf(CdpSdkBase):
             elif len(services) == 1:
                 resolved_df_crn = services[0]['crn']
             else:
-                resolved_df_crn = None
                 self.sdk.throw_error(
                     CdpError('More than one DataFlow service found for env_crn, please try list instead')
                 )
         else:
-            resolved_df_crn = None
             self.sdk.throw_error(CdpError("Either df_crn or env_crn must be supplied to df.describe_service"))
-        return self.sdk.call(
-            svc='df', func='describe_service', ret_field='service', squelch=[
-                Squelch(value='NOT_FOUND',
-                        warning='No DataFlow Service with crn %s found' % df_crn),
-                Squelch(value='PERMISSION_DENIED')  # DF GRPC sometimes returns 403 when finishing deletion
-            ],
-            serviceCrn=resolved_df_crn
-        )
+        if resolved_df_crn is not None:
+            return self.sdk.call(
+                svc='df', func='describe_service', ret_field='service', squelch=[
+                    Squelch(value='NOT_FOUND',
+                            warning='No DataFlow Service with crn %s found' % df_crn),
+                    Squelch(value='PERMISSION_DENIED')  # DF GRPC sometimes returns 403 when finishing deletion
+                ],
+                serviceCrn=resolved_df_crn
+            )
+        else:
+            return None
 
-    def resolve_service_crn_from_name(self, name):
-        listing = self.list_services(only_enabled=True, name=name)
+    def resolve_service_crn_from_name(self, name, only_enabled=True):
+        listing = self.list_services(only_enabled=only_enabled, name=name)
         # More than one DF Service may exist with a given name if it was previously uncleanly deleted
         if len(listing) == 1:
             return listing[0]['crn']
@@ -90,7 +92,7 @@ class CdpyDf(CdpSdkBase):
             serviceCrn=df_crn
         )
 
-    def list_deployments(self, env_crn=None, df_crn=None, name=None):
+    def list_deployments(self, env_crn=None, df_crn=None, name=None, dep_crn=None, described=False):
         result = self.sdk.call(
             svc='df', func='list_deployments', ret_field='deployments', squelch=[
                 Squelch(value='NOT_FOUND', default=list(),
@@ -98,17 +100,22 @@ class CdpyDf(CdpSdkBase):
             ],
             pageSize=self.sdk.DEFAULT_PAGE_SIZE
         )
+        if dep_crn is not None:
+            result = [x for x in result if x['crn'] == dep_crn]
         if name is not None:
             result = [x for x in result if x['name'] == name]
         if df_crn is not None:
             result = [x for x in result if x['service']['crn'] == df_crn]
         if env_crn is not None:
             result = [x for x in result if x['service']['environmentCrn'] == env_crn]
-        return result
+        if described is False:
+            return result
+        else:
+            return [self.describe_deployment(dep_crn=x['crn']) for x in result]
 
     def describe_deployment(self, dep_crn=None, df_crn=None, name=None):
         if dep_crn is not None:
-            self.sdk.validate_crn(dep_crn)
+            self.sdk.validate_crn(dep_crn, 'deployment')
         elif df_crn is not None and name is not None:
             deployments = self.list_deployments(df_crn=df_crn, name=name)
             if len(deployments) == 0:
@@ -200,6 +207,8 @@ class CdpyDf(CdpSdkBase):
             ],
             readyflowCrn=def_crn
         )
+        # Force renaming readyflowCrn to addedReadyflowCrn to reduce user confusion
+        result['addedReadyflowCrn'] = result.pop('readyflowCrn')
         out = result
         if sort_versions and out:
             out['versions'] = sorted(result['versions'], key=lambda d: d['version'], reverse=True)
