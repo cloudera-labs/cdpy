@@ -12,6 +12,7 @@ import re
 import warnings
 import traceback
 import urllib3
+from urllib.parse import urljoin
 from urllib3.exceptions import InsecureRequestWarning
 from json import JSONDecodeError
 from typing import Union
@@ -128,7 +129,7 @@ class Squelch(dict):
 class StaticCredentials(Credentials):
     """A credential class that simply takes a set of static credentials."""
 
-    def __init__(self, access_key_id, private_key, access_token='', method='static'):
+    def __init__(self, access_key_id='', private_key='', access_token='', method='static'):
         super(StaticCredentials, self).__init__(
             access_key_id=access_key_id, private_key=private_key,
             access_token=access_token, method=method
@@ -158,6 +159,7 @@ class CdpcliWrapper(object):
 
         _loader = Loader()
         _user_agent = self._make_user_agent_header()
+
         self._client_creator = ClientCreator(
             _loader,
             Context(),
@@ -274,6 +276,19 @@ class CdpcliWrapper(object):
         self.CREDENTIAL_NAME_PATTERN = re.compile(r'[^a-z0-9-]')
         self.OPERATION_REGEX = re.compile(r'operation ([0-9a-zA-Z-]{36}) running')
 
+        # Workload services with special credential and endpoint handling
+        self.WORKLOAD_SERVICES = ['dfworkload']
+
+        # substrings to check for in different CRNs
+        self.CRN_STRINGS = {
+            'generic': ['crn:'],
+            'env': [':environments:', ':environment:'],
+            'df': [':df:', ':service:'],
+            'flow': [':df:', ':flow:'],
+            'readyflow': [':df:', 'readyFlow'],
+            'deployment': [':df:', ':deployment:']
+        }
+
     def _make_user_agent_header(self):
         cdpy_version = pkg_resources.get_distribution('cdpy').version
         return '%s CDPY/%s CDPCLI/%s Python/%s %s/%s' % (
@@ -305,24 +320,44 @@ class CdpcliWrapper(object):
 
         self.logger.addHandler(handler)
 
-    def _build_client(self, service):
-        if not self.cdp_credentials:
-            self.cdp_credentials = self._client_creator.context.get_credentials()
+    def _build_client(self, service, parameters=None):
+        if service in self.WORKLOAD_SERVICES:
+            if service == 'dfworkload':
+                workload_name = 'DF'
+            else:
+                workload_name = None
+                self.throw_error(CdpError("Workload %s not recognised for client generation" % service))
+            if 'environmentCrn' not in parameters:
+                self.throw_error(CdpError("environmentCrn must be supplied when connecting to %s" % service))
+            df_access_token = self.call(
+                svc='iam', func='generate_workload_auth_token',
+                workloadName=workload_name, environmentCrn=parameters['environmentCrn']
+            )
+            token = df_access_token['token']
+            if not token.startswith('Bearer '):
+                token = 'Bearer ' + token
+            credentials = StaticCredentials(access_token=token)
+            endpoint_url = urljoin(df_access_token['endpointUrl'], '/')
+        else:
+            if not self.cdp_credentials:
+                self.cdp_credentials = self._client_creator.context.get_credentials()
+            credentials = self.cdp_credentials
+            endpoint_url = self.client_endpoint
         try:
             # region introduced in client version 0.9.42
             client = self._client_creator.create_client(
                 service_name=service,
                 region=self.cp_region,
-                explicit_endpoint_url=self.client_endpoint,
+                explicit_endpoint_url=endpoint_url,
                 tls_verification=self.tls_verify,
-                credentials=self.cdp_credentials
+                credentials=credentials
             )
         except TypeError:
             client = self._client_creator.create_client(
                 service_name=service,
-                explicit_endpoint_url=self.client_endpoint,
+                explicit_endpoint_url=endpoint_url,
                 tls_verification=self.tls_verify,
-                credentials=self.cdp_credentials
+                credentials=credentials
             )
         return client
 
@@ -358,11 +393,11 @@ class CdpcliWrapper(object):
     def regex_search(pattern, obj):
         return re.search(pattern, obj)
 
-    def validate_crn(self, obj: str):
-        if obj is not None and obj.startswith('crn:'):
-            pass
-        else:
-            self.throw_error(CdpError("Supplied env_crn %s is not a valid CDP crn" % str(obj)))
+    def validate_crn(self, obj: str, crn_type='generic'):
+        for substring in self.CRN_STRINGS[crn_type]:
+            if substring not in obj:
+                self.throw_error(CdpError("Supplied crn %s of proposed type %s is missing substring %s"
+                                          % (str(obj), crn_type, substring)))
 
     @staticmethod
     def sleep(seconds):
@@ -388,10 +423,10 @@ class CdpcliWrapper(object):
 
         return json.dumps(data, indent=2, default=_convert)
 
-    def _client(self, service):
+    def _client(self, service, parameters=None):
         """Builds a CDP Endpoint client of a given type, and caches it against later reuse"""
         if service not in self._clients:
-            self._clients[service] = self._build_client(service)
+            self._clients[service] = self._build_client(service, parameters)
         return self._clients[service]
 
     def read_file(self, file_path):
@@ -520,7 +555,7 @@ class CdpcliWrapper(object):
         Returns (dict, list, None): Output of CDP CLI Call
         """
         try:
-            call_function = getattr(self._client(service=svc), func)
+            call_function = getattr(self._client(service=svc, parameters=kwargs), func)
             if self.scrub_inputs:
                 # Remove unused submission values as the API rejects them
                 payload = {x: y for x, y in kwargs.items() if y is not None}
