@@ -120,11 +120,11 @@ class CdpyDw(CdpSdkBase):
 
         if any(x is not None for x in [common_configs, application_configs, ldap_groups, enable_sso]):
             config = {}
-            if common_configs is not None and not common_configs:
+            if common_configs is not None and common_configs:
                 config['commonConfigs'] = common_configs
-            if application_configs is not None and not application_configs:
+            if application_configs is not None and application_configs:
                 config['applicationConfigs'] = application_configs
-            if ldap_groups is not None and not ldap_groups:
+            if ldap_groups is not None and ldap_groups:
                 config['ldapGroups'] = ldap_groups
             if enable_sso is not None:
                 config['enableSSO'] = enable_sso
