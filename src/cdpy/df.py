@@ -14,7 +14,7 @@ class CdpyDf(CdpSdkBase):
             svc='df', func='list_services', ret_field='services', squelch=[
                 Squelch(value='NOT_FOUND', default=list(),
                         warning='No DataFlow Services found'),
-                Squelch(field='error_code', value='PATH_DISABLED', default=list(),
+                Squelch(value='PATH_DISABLED', default=list(),
                         warning='DataFlow not enabled on CDP Tenant')
             ],
             pageSize=self.sdk.DEFAULT_PAGE_SIZE
@@ -50,7 +50,7 @@ class CdpyDf(CdpSdkBase):
                 svc='df', func='describe_service', ret_field='service', squelch=[
                     Squelch(value='NOT_FOUND',
                             warning='No DataFlow Service with crn %s found' % df_crn),
-                    Squelch(field='error_code', value='PATH_DISABLED',
+                    Squelch(value='PATH_DISABLED',
                             warning='DataFlow not enabled on CDP Tenant'),
                     Squelch(value='PERMISSION_DENIED')  # DF GRPC sometimes returns 403 when finishing deletion
                 ],
@@ -101,7 +101,7 @@ class CdpyDf(CdpSdkBase):
             svc='df', func='list_deployments', ret_field='deployments', squelch=[
                 Squelch(value='NOT_FOUND', default=list(),
                         warning='No DataFlow Deployments found'),
-                Squelch(field='error_code', value='PATH_DISABLED', default=list(),
+                Squelch(value='PATH_DISABLED', default=list(),
                         warning='DataFlow not enabled on CDP Tenant')
             ],
             pageSize=self.sdk.DEFAULT_PAGE_SIZE
@@ -142,7 +142,7 @@ class CdpyDf(CdpSdkBase):
             svc='df', func='describe_deployment', ret_field='deployment', squelch=[
                 Squelch(value='NOT_FOUND',
                         warning='No DataFlow Deployment with crn %s found' % dep_crn),
-                Squelch(field='error_code', value='PATH_DISABLED',
+                Squelch(value='PATH_DISABLED',
                         warning='DataFlow not enabled on CDP Tenant')
             ],
             deploymentCrn=dep_crn
@@ -154,7 +154,7 @@ class CdpyDf(CdpSdkBase):
             svc='df', func='list_readyflows', ret_field='readyflows', squelch=[
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlows found within your CDP Tenant'),
-                Squelch(field='error_code', value='PATH_DISABLED',
+                Squelch(value='PATH_DISABLED',
                         warning='DataFlow not enabled on CDP Tenant')                        
             ],
         )
@@ -168,7 +168,7 @@ class CdpyDf(CdpSdkBase):
             svc='df', func='list_flow_definitions', ret_field='flows', squelch=[
                 Squelch(value='NOT_FOUND',
                         warning='No Flow Definitions found within your CDP Tenant Catalog'),
-                Squelch(field='error_code', value='PATH_DISABLED',
+                Squelch(value='PATH_DISABLED',
                         warning='DataFlow not enabled on CDP Tenant')
             ],
         )
@@ -183,7 +183,7 @@ class CdpyDf(CdpSdkBase):
             svc='df', func='describe_readyflow', ret_field='readyflowDetail', squelch=[
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlow Definition with crn %s found' % def_crn),
-                Squelch(field='error_code', value='PATH_DISABLED',
+                Squelch(value='PATH_DISABLED',
                         warning='DataFlow not enabled on CDP Tenant')
             ],
             readyflowCrn=def_crn
@@ -196,7 +196,7 @@ class CdpyDf(CdpSdkBase):
             svc='df', func='add_readyflow', ret_field='addedReadyflowDetail', squelch=[
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlow Definition with crn %s found' % def_crn),
-                Squelch(field='error_code', value='PATH_DISABLED',
+                Squelch(value='PATH_DISABLED',
                         warning='DataFlow not enabled on CDP Tenant')                        
             ],
             readyflowCrn=def_crn
@@ -209,7 +209,7 @@ class CdpyDf(CdpSdkBase):
             svc='df', func='delete_added_readyflow', ret_field='readyflowDetail', squelch=[
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlow Definition with crn %s found' % def_crn),
-                Squelch(field='error_code', value='PATH_DISABLED',
+                Squelch(value='PATH_DISABLED',
                         warning='DataFlow not enabled on CDP Tenant')                        
             ],
             readyflowCrn=def_crn
@@ -222,7 +222,7 @@ class CdpyDf(CdpSdkBase):
             svc='df', func='describe_added_readyflow', ret_field='addedReadyflowDetail', squelch=[
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlow Definition with crn %s found' % def_crn),
-                Squelch(field='error_code', value='PATH_DISABLED',
+                Squelch(value='PATH_DISABLED',
                         warning='DataFlow not enabled on CDP Tenant')                        
             ],
             readyflowCrn=def_crn
@@ -240,7 +240,7 @@ class CdpyDf(CdpSdkBase):
             svc='df', func='describe_flow', ret_field='flowDetail', squelch=[
                 Squelch(value='NOT_FOUND',
                         warning='No Flow Definition with crn %s found' % def_crn),
-                Squelch(field='error_code', value='PATH_DISABLED',
+                Squelch(value='PATH_DISABLED',
                         warning='DataFlow not enabled on CDP Tenant')
             ],
             flowCrn=def_crn
