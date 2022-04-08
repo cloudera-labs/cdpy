@@ -3,6 +3,7 @@
 from cdpy.common import CdpSdkBase, Squelch, CdpError, CdpWarning
 from cdpcli.extensions.df.createdeployment import CreateDeploymentOperationCaller
 
+ENTITLEMENT_DISABLED='DataFlow not enabled on CDP Tenant'
 
 class CdpyDf(CdpSdkBase):
     def __init__(self, *args, **kwargs):
@@ -15,7 +16,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND', default=list(),
                         warning='No DataFlow Services found'),
                 Squelch(value='PATH_DISABLED', default=list(),
-                        warning='DataFlow not enabled on CDP Tenant')
+                        warning=ENTITLEMENT_DISABLED)
             ],
             pageSize=self.sdk.DEFAULT_PAGE_SIZE
         )
@@ -51,7 +52,7 @@ class CdpyDf(CdpSdkBase):
                     Squelch(value='NOT_FOUND',
                             warning='No DataFlow Service with crn %s found' % df_crn),
                     Squelch(value='PATH_DISABLED',
-                            warning='DataFlow not enabled on CDP Tenant'),
+                            warning=ENTITLEMENT_DISABLED),
                     Squelch(value='PERMISSION_DENIED')  # DF GRPC sometimes returns 403 when finishing deletion
                 ],
                 serviceCrn=resolved_df_crn
@@ -102,7 +103,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND', default=list(),
                         warning='No DataFlow Deployments found'),
                 Squelch(value='PATH_DISABLED', default=list(),
-                        warning='DataFlow not enabled on CDP Tenant')
+                        warning=ENTITLEMENT_DISABLED)
             ],
             pageSize=self.sdk.DEFAULT_PAGE_SIZE
         )
@@ -143,7 +144,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND',
                         warning='No DataFlow Deployment with crn %s found' % dep_crn),
                 Squelch(value='PATH_DISABLED',
-                        warning='DataFlow not enabled on CDP Tenant')
+                        warning=ENTITLEMENT_DISABLED)
             ],
             deploymentCrn=dep_crn
         )
@@ -155,7 +156,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlows found within your CDP Tenant'),
                 Squelch(value='PATH_DISABLED',
-                        warning='DataFlow not enabled on CDP Tenant')                        
+                        warning=ENTITLEMENT_DISABLED)                        
             ],
         )
         if name is not None:
@@ -169,7 +170,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND',
                         warning='No Flow Definitions found within your CDP Tenant Catalog'),
                 Squelch(value='PATH_DISABLED',
-                        warning='DataFlow not enabled on CDP Tenant')
+                        warning=ENTITLEMENT_DISABLED)
             ],
         )
         if name is not None:
@@ -184,7 +185,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlow Definition with crn %s found' % def_crn),
                 Squelch(value='PATH_DISABLED',
-                        warning='DataFlow not enabled on CDP Tenant')
+                        warning=ENTITLEMENT_DISABLED)
             ],
             readyflowCrn=def_crn
         )
@@ -197,7 +198,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlow Definition with crn %s found' % def_crn),
                 Squelch(value='PATH_DISABLED',
-                        warning='DataFlow not enabled on CDP Tenant')                        
+                        warning=ENTITLEMENT_DISABLED)                        
             ],
             readyflowCrn=def_crn
         )
@@ -210,7 +211,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlow Definition with crn %s found' % def_crn),
                 Squelch(value='PATH_DISABLED',
-                        warning='DataFlow not enabled on CDP Tenant')                        
+                        warning=ENTITLEMENT_DISABLED)                        
             ],
             readyflowCrn=def_crn
         )
@@ -223,7 +224,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlow Definition with crn %s found' % def_crn),
                 Squelch(value='PATH_DISABLED',
-                        warning='DataFlow not enabled on CDP Tenant')                        
+                        warning=ENTITLEMENT_DISABLED)                        
             ],
             readyflowCrn=def_crn
         )
@@ -241,7 +242,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND',
                         warning='No Flow Definition with crn %s found' % def_crn),
                 Squelch(value='PATH_DISABLED',
-                        warning='DataFlow not enabled on CDP Tenant')
+                        warning=ENTITLEMENT_DISABLED)
             ],
             flowCrn=def_crn
         )

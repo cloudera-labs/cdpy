@@ -2,6 +2,8 @@
 
 from cdpy.common import CdpSdkBase, Squelch, CdpError
 
+ENTITLEMENT_DISABLED='Data Warehousing not enabled on CDP Tenant'
+
 
 class CdpyDw(CdpSdkBase):
     def __init__(self, *args, **kwargs):
@@ -12,6 +14,7 @@ class CdpyDw(CdpSdkBase):
             svc='dw', func='list_dbcs', ret_field='dbcs', squelch=[
                 Squelch(value='NOT_FOUND', default=list()),
                 Squelch(field='status_code', value='504', default=list(), warning="No Data Catalogs found in this Cluster"),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED, default=list())
             ],
             clusterId=cluster_id
         )
@@ -21,6 +24,7 @@ class CdpyDw(CdpSdkBase):
             svc='dw', func='list_vws', ret_field='vws', squelch=[
                 Squelch(value='NOT_FOUND', default=list()),
                 Squelch(field='status_code', value='504', default=list(), warning="No Virtual Warehouses found in this Cluster"),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED, default=list())
             ],
             clusterId=cluster_id
         )
@@ -28,7 +32,9 @@ class CdpyDw(CdpSdkBase):
     def describe_cluster(self, cluster_id):
         return self.sdk.call(
             svc='dw', func='describe_cluster', ret_field='cluster', squelch=[
-                Squelch('NOT_FOUND'), Squelch('INVALID_ARGUMENT')
+                Squelch('NOT_FOUND'),
+                Squelch('INVALID_ARGUMENT'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ],
             clusterId=cluster_id
         )
@@ -36,7 +42,10 @@ class CdpyDw(CdpSdkBase):
     def describe_vw(self, cluster_id, vw_id):
         return self.sdk.call(
             svc='dw', func='describe_vw', ret_field='vw', squelch=[
-                Squelch('NOT_FOUND'), Squelch('INVALID_ARGUMENT'), Squelch('UNKNOWN')
+                Squelch('NOT_FOUND'), 
+                Squelch('INVALID_ARGUMENT'),
+                Squelch('UNKNOWN'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ],
             clusterId=cluster_id,
             vwId=vw_id
@@ -45,7 +54,10 @@ class CdpyDw(CdpSdkBase):
     def describe_dbc(self, cluster_id, dbc_id):
         return self.sdk.call(
             svc='dw', func='describe_dbc', ret_field='dbc', squelch=[
-                Squelch('NOT_FOUND'), Squelch('INVALID_ARGUMENT'), Squelch('UNKNOWN')
+                Squelch('NOT_FOUND'), 
+                Squelch('INVALID_ARGUMENT'),
+                Squelch('UNKNOWN'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ],
             clusterId=cluster_id,
             dbcId=dbc_id
@@ -54,7 +66,8 @@ class CdpyDw(CdpSdkBase):
     def list_clusters(self, env_crn=None):
         resp = self.sdk.call(
             svc='dw', func='list_clusters', ret_field='clusters', squelch=[
-                Squelch(value='NOT_FOUND', default=list())
+                Squelch(value='NOT_FOUND', default=list()),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED, default=list())
             ]
         )
         if env_crn:
@@ -89,12 +102,18 @@ class CdpyDw(CdpSdkBase):
         return self.sdk.call(
             svc='dw', func='create_cluster', ret_field='clusterId', environmentCrn=env_crn,
             useOverlayNetwork=overlay, usePrivateLoadBalancer=private_load_balancer,
-            awsOptions=aws_options, azureOptions=azure_options
+            awsOptions=aws_options, azureOptions=azure_options, squelch=[
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ]
         )
 
     def delete_cluster(self, cluster_id: str, force: bool = False):
         return self.sdk.call(
-            svc='dw', func='delete_cluster', squelch=[Squelch('NOT_FOUND')], clusterId=cluster_id, force=force
+            svc='dw', func='delete_cluster', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ], 
+            clusterId=cluster_id, force=force
         )
 
     def create_vw(self, cluster_id:str, dbc_id:str, vw_type:str, name:str, template:str = None,
@@ -134,21 +153,33 @@ class CdpyDw(CdpSdkBase):
         return self.sdk.call(
             svc='dw', func='create_vw', ret_field='vwId', clusterId=cluster_id, dbcId=dbc_id,
             vwType=vw_type, name=name, template=template, autoscaling=autoscaling, config=config,
-            tags=tag_list
+            tags=tag_list, squelch=[
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ]
         )
 
     def delete_vw(self, cluster_id:str, vw_id:str):
         return self.sdk.call(
-            svc='dw', func='delete_vw', squelch=[Squelch('NOT_FOUND')], clusterId=cluster_id, vwId=vw_id
+            svc='dw', func='delete_vw', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ],
+            clusterId=cluster_id, vwId=vw_id
         )
         
     def create_dbc(self, cluster_id:str, name:str, load_demo_data: bool = None):
         return self.sdk.call(
             svc='dw', func='create_dbc', ret_field='dbcId', clusterId = cluster_id, name=name,
-            loadDemoData = load_demo_data
+            loadDemoData = load_demo_data, squelch=[
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ]
         )
 
     def delete_dbc(self, cluster_id:str, dbc_id:str):
         return self.sdk.call(
-            svc='dw', func='delete_dbc', squelch=[Squelch('NOT_FOUND')], clusterId=cluster_id, dbcId=dbc_id
+            svc='dw', func='delete_dbc', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ], 
+            clusterId=cluster_id, dbcId=dbc_id
         )

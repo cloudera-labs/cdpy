@@ -2,6 +2,9 @@
 
 from cdpy.common import CdpSdkBase, Squelch, CdpcliWrapper
 
+ENTITLEMENT_DISABLED='Data Engineering not enabled on CDP Tenant'
+
+
 class CdpyDe(CdpSdkBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -9,7 +12,8 @@ class CdpyDe(CdpSdkBase):
     def describe_vc(self, cluster_id, vc_id):
         return self.sdk.call(
             svc='de', func='describe_vc', ret_field='vc', squelch=[
-                Squelch('NOT_FOUND'), Squelch('INVALID_ARGUMENT')
+                Squelch('NOT_FOUND'), Squelch('INVALID_ARGUMENT'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ],
             clusterId=cluster_id,
             vcId=vc_id
@@ -21,6 +25,7 @@ class CdpyDe(CdpSdkBase):
                 Squelch(value='NOT_FOUND', default=list()),
                 Squelch(field='status_code', value='504', default=list(),
                         warning="No VCS in this Cluster"),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ],
             clusterId=cluster_id
         )
@@ -28,7 +33,9 @@ class CdpyDe(CdpSdkBase):
     def create_vc(self, name, cluster_id, cpu_requests, memory_requests, chart_value_overrides=None,
                   runtime_spot_component=None, spark_version=None, acl_users=None):
         return self.sdk.call(
-            svc='de', func='create_vc', ret_field='Vc',
+            svc='de', func='create_vc', ret_field='Vc', squelch=[
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)    
+            ],
             name=name,
             clusterId=cluster_id,
             cpuRequests=cpu_requests,
@@ -41,14 +48,18 @@ class CdpyDe(CdpSdkBase):
 
     def delete_vc(self, cluster_id, vc_id):
         return self.sdk.call(
-            svc='de', func='delete_vc', ret_field='status', squelch=[Squelch('NOT_FOUND')],
+            svc='de', func='delete_vc', ret_field='status', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ],
             clusterId=cluster_id, vcId=vc_id
         )
 
     def describe_service(self, cluster_id):
         return self.sdk.call(
             svc='de', func='describe_service', ret_field='service', squelch=[
-                Squelch('NOT_FOUND'), Squelch('INVALID_ARGUMENT')
+                Squelch('NOT_FOUND'), Squelch('INVALID_ARGUMENT'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ],
             clusterId=cluster_id,
         )
@@ -56,7 +67,9 @@ class CdpyDe(CdpSdkBase):
     def list_services(self, env=None, remove_deleted=False):
         services = self.sdk.call(
             svc='de', func='list_services', ret_field='services', squelch=[
-                Squelch(value='NOT_FOUND', default=list())], removeDeleted=remove_deleted
+                Squelch(value='NOT_FOUND', default=list()),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED, default=list())    
+            ], removeDeleted=remove_deleted
         )
         return [s for s in services if env is None or s['environmentName'] == env]
 
@@ -66,7 +79,9 @@ class CdpyDe(CdpSdkBase):
             enable_workload_analytics=False, root_volume_size=None, skip_validation=False,
             tags=None, use_ssd=False, whitelist_ips=None):
         return self.sdk.call(
-            svc='de', func='enable_service', ret_field='service',
+            svc='de', func='enable_service', ret_field='service', squelch=[
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)    
+            ],
             name=name,
             env=env,
             instanceType=instance_type,
@@ -88,13 +103,19 @@ class CdpyDe(CdpSdkBase):
 
     def disable_service(self, cluster_id, force=False):
         return self.sdk.call(
-            svc='de', func='disable_service', ret_field='status', squelch=[Squelch('NOT_FOUND')], 
+            svc='de', func='disable_service', ret_field='status', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)    
+            ], 
             clusterId=cluster_id, force=force
         )
 
     def get_kubeconfig(self, cluster_id):
         return self.sdk.call(
-            svc='de', func='get_kubeconfig', ret_field='kubeconfig', squelch=[Squelch('NOT_FOUND')],
+            svc='de', func='get_kubeconfig', ret_field='kubeconfig', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ],
             clusterId=cluster_id
         )
 

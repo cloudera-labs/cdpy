@@ -2,6 +2,8 @@
 
 from cdpy.common import CdpError, CdpWarning, CdpSdkBase, Squelch
 
+ENTITLEMENT_DISABLED='Machine Learning not enabled on CDP Tenant'
+
 
 class CdpyMl(CdpSdkBase):
     def __init__(self, *args, **kwargs):
@@ -10,7 +12,10 @@ class CdpyMl(CdpSdkBase):
     def describe_workspace(self, name=None, crn=None, env=None):
         return self.sdk.call(
             svc='ml', func='describe_workspace', ret_field='workspace', squelch=[
-                Squelch('NOT_FOUND'), Squelch('INVALID_ARGUMENT'), Squelch('UNKNOWN')
+                Squelch('NOT_FOUND'), 
+                Squelch('INVALID_ARGUMENT'), 
+                Squelch('UNKNOWN'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ],
             workspaceName=name,
             environmentName=env,
@@ -21,7 +26,9 @@ class CdpyMl(CdpSdkBase):
         resp = self.sdk.call(
             svc='ml', func='list_workspaces', ret_field='workspaces', squelch=[
                 Squelch(value='NOT_FOUND', default=list(),
-                        warning='No Workspaces found in Tenant')
+                        warning='No Workspaces found in Tenant'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED,
+                        default=list())
             ]
         )
         # TODO: Replace with Filters
@@ -42,7 +49,8 @@ class CdpyMl(CdpSdkBase):
         resp = self.sdk.call(
             svc='ml', func='list_workspace_access', ret_field='users', ret_error=True,
             squelch=[
-                Squelch(value='UNKNOWN', default=list())
+                Squelch(value='UNKNOWN', default=list()),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED, default=list())
             ],
             workspaceName=name,
             environmentName=env,
@@ -57,7 +65,8 @@ class CdpyMl(CdpSdkBase):
         resp = self.sdk.call(
             svc='ml', func='grant_workspace_access', ret_error=True,
             squelch=[
-                Squelch(value='UNKNOWN')
+                Squelch(value='UNKNOWN'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ],
             workspaceName=name,
             environmentName=env,
@@ -73,7 +82,8 @@ class CdpyMl(CdpSdkBase):
         resp = self.sdk.call(
             svc='ml', func='revoke_workspace_access', ret_error=True,
             squelch=[
-                Squelch(value='UNKNOWN')
+                Squelch(value='UNKNOWN'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ],
             workspaceName=name,
             environmentName=env,
