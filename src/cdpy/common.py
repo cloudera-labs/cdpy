@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from datetime import datetime
 import pkg_resources
 from time import time, sleep
@@ -9,6 +8,7 @@ import json
 import logging
 import platform
 import re
+import sys
 import warnings
 import traceback
 import urllib3
@@ -17,9 +17,12 @@ from urllib3.exceptions import InsecureRequestWarning
 from json import JSONDecodeError
 from typing import Union
 
-import cdpcli
 from cdpcli import VERSION as CDPCLI_VERSION
+from cdpcli.argparser import ArgTableArgParser
+from cdpcli.arguments import CustomArgument
 from cdpcli.client import ClientCreator, Context
+from cdpcli.compat import OrderedDict, copy_kwargs
+from cdpcli.config import Config
 from cdpcli.credentials import Credentials
 from cdpcli.endpoint import EndpointCreator, EndpointResolver
 from cdpcli.exceptions import ClientError, ParamValidationError, ValidationError
@@ -27,6 +30,7 @@ from cdpcli.loader import Loader
 from cdpcli.parser import ResponseParserFactory
 from cdpcli.retryhandler import create_retry_handler
 from cdpcli.translate import build_retry_config
+from cdpcli.utils import get_extension_registers
 
 
 class CdpWarning(UserWarning):
@@ -125,6 +129,9 @@ class Squelch(dict):
         self.default = default
         self.warning = warning
 
+    def __str__(self):
+        return 'Squelch({}={})'.format(self.field, self.value)
+
 
 class StaticCredentials(Credentials):
     """A credential class that simply takes a set of static credentials."""
@@ -134,6 +141,13 @@ class StaticCredentials(Credentials):
             access_key_id=access_key_id, private_key=private_key,
             access_token=access_token, method=method
         )
+
+
+def _get_call_function(client, func):
+    if func in client.EXTENSIONS:
+        return client.EXTENSIONS[func]
+    else:
+        return getattr(client, func)
 
 
 class CdpcliWrapper(object):
@@ -157,16 +171,15 @@ class CdpcliWrapper(object):
         self._clients = {}
         self.DEFAULT_PAGE_SIZE = 100
 
-        _loader = Loader()
+        self._loader = Loader()
         _user_agent = self._make_user_agent_header()
-
         self._client_creator = ClientCreator(
-            _loader,
+            self._loader,
             Context(),
             EndpointCreator(EndpointResolver()),
             _user_agent,
             ResponseParserFactory(),
-            create_retry_handler(self._load_retry_config(_loader)))
+            create_retry_handler(self._load_retry_config(self._loader)))
 
         # Logging
         _log_format = '%(asctime)s - %(threadName)s - %(name)s - %(levelname)s - %(message)s'
@@ -289,6 +302,93 @@ class CdpcliWrapper(object):
             'deployment': [':df:', ':deployment:']
         }
 
+    def _parsed_global_defaults(self, args=None):
+        # Convoluted way to get the global defaults
+        # TODO: Simplify this if there's an easier way I couldn't find
+        if args is None:
+            args = {}
+        _argument_table = OrderedDict()
+        _cli_arguments = self._loader.load_json('cli.json').get('options', None)
+        for option in _cli_arguments:
+            option_params = copy_kwargs(_cli_arguments[option])
+            cli_argument = CustomArgument(
+                option,
+                help_text=option_params.get('help', ''),
+                dest=option_params.get('dest'),
+                default=option_params.get('default'),
+                action=option_params.get('action'),
+                required=option_params.get('required'),
+                choices=option_params.get('choices'),
+                cli_type_name=option_params.get('type'),
+                hidden=option_params.get('hidden', False))
+            cli_argument.add_to_arg_table(_argument_table)
+
+        _arg_parser = ArgTableArgParser(_argument_table)
+        return _arg_parser.parse_known_args(args)[0]
+
+    def _register_extensions(self, client):
+        extensions = {}
+
+        # For each operation, check for extensions and "register" them, if any
+        for func, operation in client._PY_TO_OP_NAME.items():
+            model = client.meta.service_model.operation_model(operation)
+            ext_names = model.extensions
+            if not ext_names:
+                continue
+
+            # Register operation callers for all available extensions
+            ext_registers = [get_extension_registers(ext)[0] for ext in reversed(ext_names)]
+            operation_callers = []
+            for ext_register in ext_registers:
+                ext_register(operation_callers, None)
+
+            def _create_client(parsed_globals):
+                def _wrapper(service_name):
+                    # The TLS verification value can be a boolean or a CA_BUNDLE path. This
+                    # is a little odd, but ultimately comes from the python HTTP requests
+                    # library we're using.
+                    tls_verification = parsed_globals.verify_tls
+                    ca_bundle = getattr(parsed_globals, 'ca_bundle', None)
+                    if parsed_globals.verify_tls and ca_bundle is not None:
+                        tls_verification = ca_bundle
+
+                    # Retrieve values passed for extra client configuration.
+                    config_kwargs = {}
+                    if parsed_globals.read_timeout is not None:
+                        config_kwargs['read_timeout'] = int(parsed_globals.read_timeout)
+                    if parsed_globals.connect_timeout is not None:
+                        config_kwargs['connect_timeout'] = int(parsed_globals.connect_timeout)
+                    config = Config(**config_kwargs)
+
+                    cli = self._client_creator.create_client(
+                        service_name,
+                        parsed_globals.endpoint_url,
+                        parsed_globals.cdp_region,
+                        tls_verification,
+                        self._client_creator.context.get_credentials(parsed_globals),
+                        client_config=config)
+                    return cli
+                return _wrapper
+
+            def _extension_override(operation_model):
+                parsed_globals = self._parsed_global_defaults()
+                create_client = _create_client(parsed_globals)
+
+                def _wrapper(**call_parameters):
+                    for operation_caller in operation_callers:
+                        if operation_caller.invoke(
+                                create_client,
+                                operation_model,
+                                call_parameters,
+                                {},
+                                parsed_globals) is False:
+                            break
+                return _wrapper
+
+            extensions[func] = _extension_override(model)
+
+        client.EXTENSIONS = extensions
+
     def _make_user_agent_header(self):
         cdpy_version = pkg_resources.get_distribution('cdpy').version
         return '%s CDPY/%s CDPCLI/%s Python/%s %s/%s' % (
@@ -359,6 +459,8 @@ class CdpcliWrapper(object):
                 tls_verification=self.tls_verify,
                 credentials=credentials
             )
+
+        self._register_extensions(client)
         return client
 
     @staticmethod
@@ -555,7 +657,6 @@ class CdpcliWrapper(object):
         Returns (dict, list, None): Output of CDP CLI Call
         """
         try:
-            call_function = getattr(self._client(service=svc, parameters=kwargs), func)
             if self.scrub_inputs:
                 # Remove unused submission values as the API rejects them
                 payload = {x: y for x, y in kwargs.items() if y is not None}
@@ -567,7 +668,27 @@ class CdpcliWrapper(object):
             else:
                 payload = kwargs
 
-            resp = call_function(**payload)
+            client = self._client(service=svc, parameters=kwargs)
+            call_function = _get_call_function(client, func)
+
+            _stdout = None
+            try:
+                # Hijack stdout because currently this seems to be the only way to capture output
+                # for api calls when there are registered extensions ¯\_(ツ)_/¯
+                _stdout = sys.stdout
+                sys.stdout = io.StringIO()
+                resp = call_function(**payload)
+                if resp is None:
+                    # this is likely coming from an extension call, so grab the output
+                    try:
+                        resp = json.loads(sys.stdout.getvalue())
+                    except:
+                        resp = {}
+            finally:
+                # Job done. Restore stdout
+                if sys.stdout != _stdout:
+                    sys.stdout.close()
+                    sys.stdout = _stdout
 
             if 'nextToken' in resp:
                 while 'nextToken' in resp:
@@ -584,6 +705,9 @@ class CdpcliWrapper(object):
             if ret_field is not None:
                 if not resp:
                     self.throw_warning(CdpWarning('Call Response is empty, cannot return child field %s' % ret_field))
+                elif ret_field == '.':
+                    # Desired return is the root object
+                    return resp
                 else:
                     return resp[ret_field]
 
