@@ -3,7 +3,7 @@
 from cdpy.common import CdpSdkBase, Squelch, CdpError, CdpWarning
 from cdpcli.extensions.df.createdeployment import CreateDeploymentOperationCaller
 
-ENTITLEMENT_DISABLED='DataFlow not enabled on CDP Tenant'
+ENTITLEMENT_DISABLED = 'DataFlow not enabled on CDP Tenant'
 
 class CdpyDf(CdpSdkBase):
     def __init__(self, *args, **kwargs):
@@ -156,7 +156,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlows found within your CDP Tenant'),
                 Squelch(value='PATH_DISABLED',
-                        warning=ENTITLEMENT_DISABLED)                        
+                        warning=ENTITLEMENT_DISABLED)
             ],
         )
         if name is not None:
@@ -198,7 +198,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlow Definition with crn %s found' % def_crn),
                 Squelch(value='PATH_DISABLED',
-                        warning=ENTITLEMENT_DISABLED)                        
+                        warning=ENTITLEMENT_DISABLED)
             ],
             readyflowCrn=def_crn
         )
@@ -211,7 +211,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlow Definition with crn %s found' % def_crn),
                 Squelch(value='PATH_DISABLED',
-                        warning=ENTITLEMENT_DISABLED)                        
+                        warning=ENTITLEMENT_DISABLED)
             ],
             readyflowCrn=def_crn
         )
@@ -224,7 +224,7 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='NOT_FOUND',
                         warning='No ReadyFlow Definition with crn %s found' % def_crn),
                 Squelch(value='PATH_DISABLED',
-                        warning=ENTITLEMENT_DISABLED)                        
+                        warning=ENTITLEMENT_DISABLED)
             ],
             readyflowCrn=def_crn
         )
@@ -250,6 +250,42 @@ class CdpyDf(CdpSdkBase):
         if sort_versions and out:
             out['versions'] = sorted(result['versions'], key=lambda d: d['version'], reverse=True)
         return out
+
+    def import_customflow(self, def_file, name, description=None, comments=None):
+        return self.sdk.call(
+            svc='df', func='import_flow_definition', ret_field='.', squelch=[
+                Squelch(value='PATH_DISABLED',
+                        warning=ENTITLEMENT_DISABLED)
+            ],
+            file=def_file,
+            name=name,
+            description=description,
+            comments=comments
+        )
+
+    def import_customflow_version(self, def_crn, def_file, comments=None):
+        self.sdk.validate_crn(def_crn, 'flow')
+        return self.sdk.call(
+            svc='df', func='import_flow_definition_version', ret_field='.', squelch=[
+                Squelch(value='PATH_DISABLED',
+                        warning=ENTITLEMENT_DISABLED)
+            ],
+            flowCrn=def_crn,
+            file=def_file,
+            comments=comments
+        )
+
+    def delete_customflow(self, def_crn):
+        self.sdk.validate_crn(def_crn, 'flow')
+        return self.sdk.call(
+            svc='df', func='delete_flow', ret_field='flow', squelch=[
+                Squelch(value='NOT_FOUND',
+                        warning='No Flow Definition with crn %s found' % def_crn),
+                Squelch(value='PATH_DISABLED',
+                        warning=ENTITLEMENT_DISABLED)
+            ],
+            flowCrn=def_crn
+        )
 
     def get_version_crn_from_flow_definition(self, flow_name, version=None):
         summary_list = self.list_flow_definitions(name=flow_name)
