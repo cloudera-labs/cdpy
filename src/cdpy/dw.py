@@ -183,3 +183,12 @@ class CdpyDw(CdpSdkBase):
             ], 
             clusterId=cluster_id, dbcId=dbc_id
         )
+    
+    def restart_dbc(self, cluster_id:str, dbc_id:str):
+        return self.sdk.call(
+            svc='dw', func='restart_dbc', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ], 
+            clusterId=cluster_id, dbcId=dbc_id
+        )
