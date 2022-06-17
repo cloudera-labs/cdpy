@@ -5,6 +5,7 @@ from cdpcli.extensions.df.createdeployment import CreateDeploymentOperationCalle
 
 ENTITLEMENT_DISABLED = 'DataFlow not enabled on CDP Tenant'
 
+
 class CdpyDf(CdpSdkBase):
     def __init__(self, *args, **kwargs):
         self.DEPLOYMENT_SIZES = ['EXTRA_SMALL', 'SMALL', 'MEDIUM', 'LARGE']
@@ -252,13 +253,21 @@ class CdpyDf(CdpSdkBase):
         return out
 
     def import_customflow(self, def_file, name, description=None, comments=None):
+        # cdpcli/extensions/df/__init__.py: DfExtension._df_upload_flow
+
         return self.sdk.call(
-            svc='df', func='import_flow_definition', ret_field='.', squelch=[
-                Squelch(value='PATH_DISABLED',
-                        warning=ENTITLEMENT_DISABLED)
+            svc='df', func='import_flow_definition', squelch=[
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED),
+                Squelch(field='status_code', value='409')
             ],
-            file=def_file,
+            redirect_headers={
+                'Content-Type': 'application/json',
+                'Flow-Definition-Name': self.sdk.encode_value(name),
+                'Flow-Definition-Description': self.sdk.encode_value(description),
+                'Flow-Definition-Comments': self.sdk.encode_value(comments)
+            },
             name=name,
+            file=def_file,
             description=description,
             comments=comments
         )
@@ -267,9 +276,13 @@ class CdpyDf(CdpSdkBase):
         self.sdk.validate_crn(def_crn, 'flow')
         return self.sdk.call(
             svc='df', func='import_flow_definition_version', ret_field='.', squelch=[
-                Squelch(value='PATH_DISABLED',
-                        warning=ENTITLEMENT_DISABLED)
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED),
+                Squelch(field='status_code', value='409')
             ],
+            redirect_headers={
+                'Content-Type': 'application/json',
+                'Flow-Definition-Comments': self.sdk.encode_value(comments)
+            },
             flowCrn=def_crn,
             file=def_file,
             comments=comments

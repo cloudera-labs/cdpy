@@ -16,6 +16,8 @@ from urllib.parse import urljoin
 from urllib3.exceptions import InsecureRequestWarning
 from json import JSONDecodeError
 from typing import Union
+import urllib.parse as urlparse
+from os import path
 
 import cdpcli
 from cdpcli import VERSION as CDPCLI_VERSION
@@ -457,6 +459,20 @@ class CdpcliWrapper(object):
                 return None
         return value
 
+    @staticmethod
+    def encode_value(value):
+        if value:
+            return urlparse.quote(value)
+        return None
+
+    def expand_file_path(self, file_path):
+        if path.exists(file_path):
+            return path.expandvars(path.expanduser(file_path))
+        else:
+            self.throw_error(
+                CdpError('Path [{}] not found'.format(file_path))
+            )
+
     def wait_for_state(self, describe_func, params: dict, field: Union[str, None, list] = 'status',
                        state: Union[list, str, None] = None, delay: int = 15, timeout: int = 3600,
                        ignore_failures: bool = False):
@@ -538,8 +554,85 @@ class CdpcliWrapper(object):
                 CdpError("Timeout waiting for function {0} with params [{1}] to return field {2} with state {3}"
                          .format(describe_func.__name__, str(params), field, str(state))))
 
+    def _scrub_inputs(self, inputs):
+        # Used in main call() function
+        logging.debug("Scrubbing inputs in payload")
+        # Remove unused submission values as the API rejects them
+        payload = {x: y for x, y in inputs.items() if y is not None}
+        # Remove and issue warning for empty string submission values as the API rejects them
+        _ = [self.throw_warning(
+            CdpWarning('Removing empty string arg %s from submission' % x))
+            for x, y in payload.items() if y == '']
+        payload = {x: y for x, y in payload.items() if y != ''}
+        return payload
+
+    def _handle_paging(self, response, call_function, payload):
+        # Used in main call() function
+        while 'nextToken' in response:
+            token = response.pop('nextToken')
+            next_page = call_function(
+                **payload, startingToken=token, pageSize=self.DEFAULT_PAGE_SIZE)
+            for key in next_page.keys():
+                if isinstance(next_page[key], str):
+                    response[key] = next_page[key]
+                elif isinstance(next_page[key], list):
+                    response[key] += (next_page[key])
+        return response
+
+    def _handle_call_errors(self, err, squelch):
+        # Used in main call() function
+        # Note that the cascade of behaviors here is designed to be convenient for Ansible module development
+        parsed_err = CdpError(err)
+        if self.debug:
+            log = self.get_log()
+            parsed_err.update(sdk_out=log, sdk_out_lines=log.splitlines())
+        if self.strict_errors is True:
+            self.throw_error(parsed_err)
+        if isinstance(err, ClientError):
+            if squelch is not None:
+                for item in squelch:
+                    if item.value in str(parsed_err.__getattribute__(item.field)):
+                        warning = item.warning if item.warning is not None else str(parsed_err.violations)
+                        self.throw_warning(CdpWarning(warning))
+                        return item.default
+        return parsed_err
+
+    def _handle_redirect_call(self, client, call_function, payload, headers):
+        # cdpcli/extensions/redirect.py
+        http, resp = client.make_api_call(
+            client.meta.method_to_api_mapping[call_function],
+            payload,
+            allow_redirects=False
+        )
+        if not http.is_redirect:
+            self.throw_error(CdpError("Redirect headers supplied but no redirect URL from API call"))
+        redirect_url = http.headers.get('Location', None)
+
+        if redirect_url is not None:
+            with open(self.expand_file_path(payload['file']), 'rb') as f:
+                http, full_response = client.make_request(
+                    operation_name=client.meta.method_to_api_mapping[call_function],
+                    method='post',
+                    url_path=redirect_url,
+                    headers=self._scrub_inputs(inputs=headers),
+                    body=f
+                )
+        else:
+            self.throw_error(CdpError("Redirect call attempted but redirect URL was empty"))
+        return full_response
+
+    def _handle_std_call(self, client, call_function, payload):
+        func_to_call = getattr(client, call_function)
+        raw_response = func_to_call(**payload)
+        if raw_response is not None and 'nextToken' in raw_response:
+            logging.debug("Found paged results in %s" % call_function)
+            full_response = self._handle_paging(raw_response, func_to_call, payload)
+        else:
+            full_response = raw_response
+        return full_response
+
     def call(self, svc: str, func: str, ret_field: str = None, squelch: ['Squelch'] = None, ret_error: bool = False,
-             **kwargs: Union[dict, bool, str, list]) -> Union[list, dict, 'CdpError']:
+             redirect_headers: dict = None, **kwargs: Union[dict, bool, str, list]) -> Union[list, dict, 'CdpError']:
         """
         Wraps the call to an underlying CDP CLI Service, handles common errors, and parses output
 
@@ -550,60 +643,33 @@ class CdpcliWrapper(object):
             squelch (list(Squelch)): list of Descriptions of Error squelching options
             ret_error (bool): Whether to return the error object if generated,
                 defaults to False and raise instead
-            **kwargs (dict): Keyword Args to be supplied to the Function, eg userId
+            redirect_headers (dict): Dict of http submission headers for the call, triggers redirected upload call.
+            **kwargs (dict): Keyword Args to be supplied to the Function, e.g. userId
 
         Returns (dict, list, None): Output of CDP CLI Call
         """
         try:
-            call_function = getattr(self._client(service=svc, parameters=kwargs), func)
             if self.scrub_inputs:
-                # Remove unused submission values as the API rejects them
-                payload = {x: y for x, y in kwargs.items() if y is not None}
-                # Remove and issue warning for empty string submission values as the API rejects them
-                _ = [self.throw_warning(
-                    CdpWarning('Removing empty string arg %s from submission' % x))
-                    for x, y in payload.items() if y == '']
-                payload = {x: y for x, y in payload.items() if y != ''}
+                payload = self._scrub_inputs(inputs=kwargs)
             else:
                 payload = kwargs
 
-            resp = call_function(**payload)
+            svc_client = self._client(service=svc, parameters=payload)
 
-            if 'nextToken' in resp:
-                while 'nextToken' in resp:
-                    logging.debug("Found paged results in %s" % func)
-                    token = resp.pop('nextToken')
-                    next_page = call_function(
-                        **payload, startingToken=token, pageSize=self.DEFAULT_PAGE_SIZE)
-                    for key in next_page.keys():
-                        if isinstance(next_page[key], str):
-                            resp[key] = next_page[key]
-                        elif isinstance(next_page[key], list):
-                            resp[key] += (next_page[key])
+            if redirect_headers is not None:
+                full_response = self._handle_redirect_call(svc_client, func, payload, redirect_headers)
+            else:
+                full_response = self._handle_std_call(svc_client, func, payload)
 
             if ret_field is not None:
-                if not resp:
+                if not full_response:
                     self.throw_warning(CdpWarning('Call Response is empty, cannot return child field %s' % ret_field))
                 else:
-                    return resp[ret_field]
-
-            return resp
+                    return full_response[ret_field]
+            return full_response
 
         except Exception as err:
-            # Note that the cascade of behaviors here is designed to be convenient for Ansible module development
-            parsed_err = CdpError(err)
-            if self.debug:
-                log = self.get_log()
-                parsed_err.update(sdk_out=log, sdk_out_lines=log.splitlines())
-            if self.strict_errors is True:
-                self.throw_error(parsed_err)
-            if isinstance(err, ClientError):
-                if squelch is not None:
-                    for item in squelch:
-                        if item.value in str(parsed_err.__getattribute__(item.field)):
-                            warning = item.warning if item.warning is not None else str(parsed_err.violations)
-                            self.throw_warning(CdpWarning(warning))
-                            return item.default
+            parsed_err = self._handle_call_errors(err, squelch)
             if ret_error is True:
                 return parsed_err
             self.throw_error(parsed_err)
