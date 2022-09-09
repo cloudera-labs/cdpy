@@ -670,7 +670,7 @@ class CdpcliWrapper(object):
 
         except Exception as err:
             parsed_err = self._handle_call_errors(err, squelch)
-            if ret_error is True:
+            if ret_error is True or not isinstance(parsed_err, CdpError):
                 return parsed_err
             self.throw_error(parsed_err)
 
