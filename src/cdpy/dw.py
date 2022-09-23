@@ -167,6 +167,33 @@ class CdpyDw(CdpSdkBase):
             clusterId=cluster_id, vwId=vw_id
         )
         
+    def start_vw(self, cluster_id:str, vw_id:str):
+        return self.sdk.call(
+            svc='dw', func='start_vw', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ],
+            clusterId=cluster_id, vwId=vw_id
+        )
+        
+    def pause_vw(self, cluster_id:str, vw_id:str):
+        return self.sdk.call(
+            svc='dw', func='pause_vw', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ],
+            clusterId=cluster_id, vwId=vw_id
+        )
+        
+    def restart_vw(self, cluster_id:str, vw_id:str):
+        return self.sdk.call(
+            svc='dw', func='restart_vw', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ],
+            clusterId=cluster_id, vwId=vw_id
+        )
+        
     def create_dbc(self, cluster_id:str, name:str, load_demo_data: bool = None):
         return self.sdk.call(
             svc='dw', func='create_dbc', ret_field='dbcId', clusterId = cluster_id, name=name,
@@ -181,5 +208,14 @@ class CdpyDw(CdpSdkBase):
                 Squelch('NOT_FOUND'),
                 Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ], 
+            clusterId=cluster_id, dbcId=dbc_id
+        )
+        
+    def restart_dbc(self, cluster_id:str, dbc_id:str):
+        return self.sdk.call(
+            svc='dw', func='restart_dbc', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ],
             clusterId=cluster_id, dbcId=dbc_id
         )
