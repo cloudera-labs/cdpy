@@ -63,6 +63,18 @@ class CdpyDw(CdpSdkBase):
             dbcId=dbc_id
         )
 
+    def describe_data_visualization(self, cluster_id, data_viz_id):
+        return self.sdk.call(
+            svc='dw', func='describe_data_visualization', ret_field='dataVisualization', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch('not found', field='violations'),
+                Squelch('INVALID_ARGUMENT'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ],
+            clusterId=cluster_id,
+            dataVisualizationId=data_viz_id,
+        )
+
     def list_clusters(self, env_crn=None):
         resp = self.sdk.call(
             svc='dw', func='list_clusters', ret_field='clusters', squelch=[
@@ -73,6 +85,15 @@ class CdpyDw(CdpSdkBase):
         if env_crn:
             return [x for x in resp if env_crn == x['environmentCrn']]
         return resp
+
+    def list_data_visualizations(self, cluster_id):
+        return self.sdk.call(
+            svc='dw', func='list_data_visualizations', ret_field='dataVisualizations', squelch=[
+                Squelch(value='NOT_FOUND', default=list()),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED, default=list())
+            ],
+            clusterId=cluster_id
+        )
 
     def gather_clusters(self, env_crn=None):
         self.sdk.validate_crn(env_crn)
@@ -107,6 +128,17 @@ class CdpyDw(CdpSdkBase):
             ]
         )
 
+    def create_data_visualization(self, cluster_id: str, name: str, config: dict = None):
+        return self.sdk.call(
+            svc='dw', func='create_data_visualization', ret_field='dataVisualizationId',
+            squelch=[
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ],
+            clusterId=cluster_id,
+            name=name,
+            config=config,
+        )
+
     def delete_cluster(self, cluster_id: str, force: bool = False):
         return self.sdk.call(
             svc='dw', func='delete_cluster', squelch=[
@@ -114,6 +146,27 @@ class CdpyDw(CdpSdkBase):
                 Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ], 
             clusterId=cluster_id, force=force
+        )
+
+    def delete_data_visualization(self, cluster_id: str, data_viz_id: str):
+        return self.sdk.call(
+            svc='dw', func='delete_data_visualization', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ],
+            clusterId=cluster_id,
+            dataVisualizationId=data_viz_id,
+        )
+
+    def update_data_visualization(self, cluster_id: str, data_viz_id: str, config: dict):
+        return self.sdk.call(
+            svc='dw', func='update_data_visualization', squelch=[
+                Squelch('NOT_FOUND'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ],
+            clusterId=cluster_id,
+            dataVisualizationId=data_viz_id,
+            config=config,
         )
 
     def create_vw(self, cluster_id:str, dbc_id:str, vw_type:str, name:str, template:str = None,
