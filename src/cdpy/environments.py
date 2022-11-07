@@ -156,14 +156,15 @@ class CdpyEnvironments(CdpSdkBase):
             forced=force
         )
 
-    def start_environment(self, name):
+    def start_environment(self, name, datahub_start=True):
         return self.sdk.call(
             svc='environments', func='start_environment', ret_field='environment', squelch=[
                 Squelch(field='error_code', value='CONFLICT', default=self.describe_environment(name),
                         warning='Environment %s is already scheduled to start' % name)
             ],
-            environmentName=name
-        )
+            environmentName=name,
+            withDatahubStart=datahub_start
+    )
 
     def set_password(self, password, environment_names=None):
         payload = dict(password=password)
