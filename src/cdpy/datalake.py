@@ -22,7 +22,9 @@ class CdpyDatalake(CdpSdkBase):
 
     def describe_datalake(self, name):
         return self.sdk.call(
-            svc='datalake', func='describe_datalake', ret_field='datalake', squelch=[Squelch('NOT_FOUND')],
+            svc='datalake', func='describe_datalake', ret_field='datalake',
+            squelch=[Squelch('NOT_FOUND'), Squelch('UNKNOWN')
+                     ],
             datalakeName=name
         )
 
