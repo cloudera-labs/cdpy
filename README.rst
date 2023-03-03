@@ -144,5 +144,5 @@ Please note that we require signed commits inline with Developer Certificate of 
 PyScaffold Note
 ===============
 
-This project has been set up using PyScaffold 3.2.3. For details and usage
+This project has been set up using PyScaffold 4. For details and usage
 information on PyScaffold see https://pyscaffold.org/.

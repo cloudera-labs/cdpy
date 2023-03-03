@@ -1,5 +1,5 @@
 cdpy Python library
-Copyright 2021 Cloudera Inc.  All Rights Reserved.
+Copyright 2023 Cloudera Inc.  All Rights Reserved.
 
 
 OVERVIEW
