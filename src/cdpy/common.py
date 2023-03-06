@@ -19,7 +19,6 @@ from typing import Union
 import urllib.parse as urlparse
 from os import path
 
-import cdpcli
 from cdpcli import VERSION as CDPCLI_VERSION
 from cdpcli.client import ClientCreator, Context
 from cdpcli.credentials import Credentials
