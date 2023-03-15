@@ -251,9 +251,9 @@ class CdpyEnvironments(CdpSdkBase):
 
     def create_aws_credential(self, name, role, description, retries=3, delay=2):
         resp = self.sdk.call(
-            svc='environments', func='create_aws_credential', ret_error=True, squelch=[
-                Squelch(field='violations', value='Credential already exists with name',
-                        warning='Credential with this name already exists', default=None)],
+            svc='environments', func='create_aws_credential', ret_error=True, 
+            ret_field='credential', squelch=[Squelch(field='violations', value='Credential already exists with name',
+                warning='Credential with this name already exists', default=None)],
             credentialName=name,
             roleArn=role,
             description=description
