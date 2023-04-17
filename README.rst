@@ -10,7 +10,7 @@ Installation
 
 To install directly from latest commits, in python requirements.txt ::
 
-    git+git://github.com/cloudera-labs/cdpy@main#egg=cdpy
+    git+https://github.com/cloudera-labs/cdpy@main#egg=cdpy
 
 For General usage, installed from cmdline ::
 
@@ -18,7 +18,7 @@ For General usage, installed from cmdline ::
 
 To install the development branch instead of main ::
 
-    git+git://github.com/cloudera-labs/cdpy@devel#egg=cdpy
+    git+https://github.com/cloudera-labs/cdpy@devel#egg=cdpy
 
 Usage
 =====
