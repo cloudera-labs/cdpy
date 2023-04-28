@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import array
 
 from cdpy.common import CdpSdkBase, Squelch
 
@@ -51,7 +52,14 @@ class CdpyOpdb(CdpSdkBase):
             environmentName=env,
         )
 
-    def create_database(self, name, env):
+    def create_database(self, name: str, env: str, disable_ephemeral_storage: bool = False,
+                        disable_jwt_auth: bool = False, auto_scaling_params: dict = None,
+                        dns_forward_domain: str = None, dns_forward_ns_ip: str = None,
+                        subnet_id: str = None, use_hdfs: bool = False, disable_multi_az: bool = False,
+                        disable_kerberos: bool = False, num_edge_nodes: int = 0, image: dict = None,
+                        enable_region_canary: bool = False,  master_node_type: str = None,
+                        gateway_node_type: str = None, custom_user_tags: array = None,
+                        attached_storage_for_workers: dict = None):
         return self.sdk.call(
             svc='opdb', func='create_database', ret_field='databaseDetails',
             squelch=[
@@ -59,6 +67,22 @@ class CdpyOpdb(CdpSdkBase):
             ],
             databaseName=name,
             environmentName=env,
+            disableEphemeralStorage=disable_ephemeral_storage,
+            disableJwtAuth=disable_jwt_auth,
+            autoScalingParameters=auto_scaling_params,
+            dnsForwardDomain=dns_forward_domain,
+            dnsForwardNsIp=dns_forward_ns_ip,
+            enableRegionCanary=enable_region_canary,
+            useHdfs=use_hdfs,
+            subnetId=subnet_id,
+            disableMultiAz=disable_multi_az,
+            disableKerberos=disable_kerberos,
+            numEdgeNodes=num_edge_nodes,
+            image=image,
+            masterNodeType=master_node_type,
+            gatewayNodeType=gateway_node_type,
+            customUserTags=custom_user_tags,
+            attachedStorageForWorkers=attached_storage_for_workers,
         )
 
     def start_database(self, name, env):
