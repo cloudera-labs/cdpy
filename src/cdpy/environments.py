@@ -15,12 +15,13 @@ class CdpyEnvironments(CdpSdkBase):
         resp = self.list_proxy_configs(name)
         return self.sdk.first_item_if_exists(resp)
 
-    def create_proxy_config(self, name, host=None, port=None, protocol=None, description=None,
-                            user=None, password=None):
+    def create_proxy_config(self, proxyConfigName, host=None, port=None, protocol=None, description=None,
+                            noProxyHosts=None, user=None, password=None):
+
         return self.sdk.call(
             svc='environments', func='create_proxy_config', ret_field='proxyConfig',
-            proxyConfigName=name, host=host, port=port,
-            protocol=protocol, description=description, user=user, password=password
+            proxyConfigName=proxyConfigName, host=host, port=port,
+            protocol=protocol, description=description, noProxyHosts=noProxyHosts, user=user, password=password
         )
 
     def delete_proxy_config(self, name):
