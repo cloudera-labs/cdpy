@@ -227,10 +227,8 @@ class CdpyDf(CdpSdkBase):
                 Squelch(value='PATH_DISABLED',
                         warning=ENTITLEMENT_DISABLED)
             ],
-            readyflowCrn=def_crn
+            addedReadyflowCrn=def_crn
         )
-        # Force renaming readyflowCrn to addedReadyflowCrn to reduce user confusion
-        result['addedReadyflowCrn'] = result.pop('readyflowCrn')
         out = result
         if sort_versions and out:
             out['versions'] = sorted(result['versions'], key=lambda d: d['version'], reverse=True)
