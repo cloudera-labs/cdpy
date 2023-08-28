@@ -30,7 +30,7 @@ class CdpyDatalake(CdpSdkBase):
 
     def delete_datalake(self, name, force=False):
         return self.sdk.call(
-            svc='datalake', func='delete_datalake', ret_field='datalake', squelch=[Squelch('NOT_FOUND')],
+            svc='datalake', func='delete_datalake', squelch=[Squelch('NOT_FOUND')],
             datalakeName=name, force=force
         )
 
