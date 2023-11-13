@@ -108,12 +108,12 @@ class CdpyDw(CdpSdkBase):
                 })
         return out
 
-    def create_cluster(self, env_crn: str, overlay: bool, aws_public_subnets: list = None,
-                       aws_private_subnets: list = None, az_subnet: str = None, az_enable_az: bool = None,
+    def create_cluster(self, env_crn: str, overlay: bool, aws_lb_subnets: list = None,
+                       aws_worker_subnets: list = None, az_subnet: str = None, az_enable_az: bool = None,
                        private_load_balancer: bool = None):
         self.sdk.validate_crn(env_crn)
-        if all(x is not None for x in [aws_private_subnets, aws_private_subnets]):
-            aws_options = dict(publicSubnetIds=aws_public_subnets, privateSubnetIds=aws_private_subnets)
+        if all(x is not None for x in [aws_worker_subnets, aws_lb_subnets]):
+            aws_options = dict(lbSubnetIds=aws_lb_subnets, workerSubnetIds=aws_worker_subnets)
         else:
             aws_options = None
         if all(x is not None for x in [az_subnet, az_enable_az]):
