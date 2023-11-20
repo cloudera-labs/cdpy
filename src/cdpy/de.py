@@ -76,8 +76,8 @@ class CdpyDe(CdpSdkBase):
     def enable_service(self, name, env, instance_type, minimum_instances, maximum_instances, 
             initial_instances=None, minimum_spot_instances=None, maximum_spot_instances=None, 
             initial_spot_instances=None, chart_value_overrides=None, enable_public_endpoint=False,
-            enable_workload_analytics=False, root_volume_size=None, skip_validation=False,
-            tags=None, use_ssd=False, loadbalancer_allowlist=None, whitelist_ips=None):
+            enable_private_network=False, enable_workload_analytics=False, root_volume_size=None, 
+            skip_validation=False, tags=None, use_ssd=False, loadbalancer_allowlist=None, whitelist_ips=None):
         return self.sdk.call(
             svc='de', func='enable_service', ret_field='service', squelch=[
                 Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)    
@@ -93,6 +93,7 @@ class CdpyDe(CdpSdkBase):
             initialSpotInstances=initial_spot_instances,
             chartValueOverrides=chart_value_overrides,
             enablePublicEndpoint=enable_public_endpoint,
+            enablePrivateNetwork=enable_private_network,
             enableWorkloadAnalytics=enable_workload_analytics,
             rootVolumeSize=root_volume_size,
             skipValidation=skip_validation,

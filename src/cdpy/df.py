@@ -73,15 +73,15 @@ class CdpyDf(CdpSdkBase):
             self.sdk.throw_error(CdpError("Multiple DataFlow Services found matching name %s" % name))
 
     def enable_service(self, env_crn: str, lb_ips: list = None, min_nodes: int = 3, max_nodes: int = 3,
-                       enable_public_ip: bool = True, kube_ips: list = None, cluster_subnets: list = None,
-                       lb_subnets: list = None, tags: dict = None):
+                       enable_public_ip: bool = True, private_cluster: bool = False, kube_ips: list = None, 
+                       cluster_subnets: list = None, lb_subnets: list = None, tags: dict = None):
         self.sdk.validate_crn(env_crn)
         return self.sdk.call(
             svc='df', func='enable_service', ret_field='service',
             environmentCrn=env_crn, minK8sNodeCount=min_nodes, maxK8sNodeCount=max_nodes,
-            usePublicLoadBalancer=enable_public_ip, kubeApiAuthorizedIpRanges=kube_ips,
-            loadBalancerAuthorizedIpRanges=lb_ips, clusterSubnets=cluster_subnets,
-            loadBalancerSubnets=lb_subnets, tags=tags
+            usePublicLoadBalancer=enable_public_ip, privateCluster=private_cluster, 
+            kubeApiAuthorizedIpRanges=kube_ips, loadBalancerAuthorizedIpRanges=lb_ips, 
+            clusterSubnets=cluster_subnets, loadBalancerSubnets=lb_subnets, tags=tags
         )
 
     def disable_service(self, df_crn: str, persist: bool = False, terminate=False):
