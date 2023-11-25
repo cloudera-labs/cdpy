@@ -216,13 +216,19 @@ class CdpyEnvironments(CdpSdkBase):
             self.sdk.throw_error(resp)
         return resp
 
-    def get_sync_status(self, operation):
+    def get_sync_status(self, identifier):
         return self.sdk.call(
             svc='environments', func='sync_status', squelch=[
                 Squelch(field='error_code', value='NOT_FOUND', default=None,
-                        warning='No User Sync Operation found matching %s' % operation)
+                        warning='No User Sync Operation found matching %s' % identifier)
             ],
-            operationId=operation
+            operationId=identifier
+        )
+        
+    def get_automated_sync_environment_status(self, environment):
+        return self.sdk.call(
+            svc='environments', func='get_automated_sync_environment_status',
+            environmentName=environment
         )
 
     def get_keytab(self, actor, environment):
