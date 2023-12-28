@@ -31,7 +31,7 @@ class CdpyDe(CdpSdkBase):
         )
 
     def create_vc(self, name, cluster_id, cpu_requests, memory_requests, chart_value_overrides=None,
-                  runtime_spot_component=None, spark_version=None, acl_users=None):
+                  runtime_spot_component=None, spark_version=None, acl_users=None, gpu_requests=None, guaranteed_cpu_requests=None, guaranteed_memory_requests=None, guaranteed_gpu_requests=None, smtp_configs=None, vc_tier='CORE' ):
         return self.sdk.call(
             svc='de', func='create_vc', ret_field='Vc', squelch=[
                 Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)    
@@ -43,7 +43,13 @@ class CdpyDe(CdpSdkBase):
             chartValueOverrides=chart_value_overrides,
             runtimeSpotComponent=runtime_spot_component,
             sparkVersion=spark_version,
-            aclUsers=acl_users
+            aclUsers=acl_users,
+            gpuRequests=gpu_requests,
+            guaranteedCpuRequests=guaranteed_cpu_requests,
+            guaranteedMemoryRequests=guaranteed_memory_requests,
+            guaranteedGpuRequests=guaranteed_gpu_requests,
+            smtpConfigs=smtp_configs,
+            vcTier=vc_tier
         )
 
     def delete_vc(self, cluster_id, vc_id):
@@ -73,11 +79,16 @@ class CdpyDe(CdpSdkBase):
         )
         return [s for s in services if env is None or s['environmentName'] == env]
 
-    def enable_service(self, name, env, instance_type, minimum_instances, maximum_instances, 
-            initial_instances=None, minimum_spot_instances=None, maximum_spot_instances=None, 
-            initial_spot_instances=None, chart_value_overrides=None, enable_public_endpoint=False,
-            enable_private_network=False, enable_workload_analytics=False, root_volume_size=None, 
-            skip_validation=False, tags=None, use_ssd=False, loadbalancer_allowlist=None, whitelist_ips=None):
+    def enable_service(self, name, env, instance_type, minimum_instances,
+            maximum_instances, initial_instances=None, 
+            minimum_spot_instances=None, maximum_spot_instances=None, 
+            initial_spot_instances=None, chart_value_overrides=None,
+            enable_public_endpoint=False, enable_private_network=False, 
+            enable_workload_analytics=False, root_volume_size=None, 
+            skip_validation=False, tags=None, use_ssd=False,
+            loadbalancer_allowlist=None, whitelist_ips=None, subnets=None,
+            cpu_requests=None, memory_requests=None, gpu_requests=None, 
+            resource_pool=None, nfs_storage_class=None ):
         return self.sdk.call(
             svc='de', func='enable_service', ret_field='service', squelch=[
                 Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)    
@@ -100,7 +111,13 @@ class CdpyDe(CdpSdkBase):
             tags=tags,
             useSsd=use_ssd,
             whitelistIps=whitelist_ips,
-            loadbalancerAllowlist=loadbalancer_allowlist
+            loadbalancerAllowlist=loadbalancer_allowlist,
+            subnets=subnets,
+            cpuRequests=cpu_requests,
+            memoryRequests=memory_requests,
+            gpuRequests=gpu_requests,
+            resourcePool=resource_pool,
+            nfsStorageClass=nfs_storage_class
         )
 
     def disable_service(self, cluster_id, force=False):
@@ -137,3 +154,33 @@ class CdpyDe(CdpSdkBase):
                 vc_id = vc['vcId']
                 break
         return vc_id
+
+    def update_service(self, cluster_id, minimum_instances, maximum_instances,
+            minimum_spot_instances=None, maximum_spot_instances=None,
+            whitelist_ips=None, loadbalancer_allowlist=None,
+            cpu_requests=None, memory_requests=None, gpu_requests=None ):
+        return self.sdk.call(
+            svc='de', func='update_service', ret_field='service', squelch=[
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ],
+            clusterId=cluster_id,
+            minimumInstances=minimum_instances,
+            maximumInstances=maximum_instances,
+            minimumSpotInstances=minimum_spot_instances,
+            maximumSpotInstances=maximum_spot_instances,
+            whitelistIps=whitelist_ips,
+            loadbalancerAllowlist=loadbalancer_allowlist,
+            cpuRequests=cpu_requests,
+            memoryRequests=memory_requests,
+            gpuRequests=gpu_requests
+        )
+
+    def update_vc(self, cluster_id, vc_id, acl_users=None ):
+        return self.sdk.call(
+            svc='de', func='update_vc', ret_field='Vc', squelch=[
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
+            ],
+            clusterId=cluster_id,
+            vcId=vc_id,
+            aclUsers=acl_users
+        )
