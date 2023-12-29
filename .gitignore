@@ -2,3 +2,9 @@
 .tox
 build
 .coverage
+src/cdpy.egg-info/top_level.txt
+src/cdpy.egg-info/SOURCES.txt
+src/cdpy.egg-info/requires.txt
+src/cdpy.egg-info/PKG-INFO
+src/cdpy.egg-info/not-zip-safe
+src/cdpy.egg-info/dependency_links.txt
