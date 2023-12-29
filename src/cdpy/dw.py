@@ -128,6 +128,24 @@ class CdpyDw(CdpSdkBase):
             ]
         )
 
+    def create_private_cluster(self, env_crn, delegation_username, delegation_password, 
+                               security_context_constraint_name=None, storage_class=None, 
+                               db_hue=None, resource_pool=None, dedicated_executor_nodes:bool=False):
+        return self.sdk.call(
+            svc='dw', func='create_private_cluster', ret_field='clusterId', squelch=[
+                Squelch(value='NOT_FOUND', default=list()),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED, default=list())
+            ],
+            environmentCrn=env_crn,
+            delegationUsername=delegation_username,
+            delegationPassword=delegation_password,
+            securityContextConstraintName=security_context_constraint_name,
+            storageClass=storage_class,
+            dbHue=db_hue,
+            resourcePool=resource_pool,
+            dedicatedExecutorNodes=dedicated_executor_nodes
+        )
+
     def create_data_visualization(self, cluster_id: str, name: str, config: dict = None):
         return self.sdk.call(
             svc='dw', func='create_data_visualization', ret_field='dataVisualizationId',
@@ -169,10 +187,13 @@ class CdpyDw(CdpSdkBase):
             config=config,
         )
 
-    def create_vw(self, cluster_id:str, dbc_id:str, vw_type:str, name:str, template:str = None,
+    def create_vw(self, cluster_id:str, dbc_id:str, vw_type:str, name:str, image_version:str=None,
+                  template:str = None, node_count:int=None, enable_unified_analytics:bool=None, 
+                  impala_options:dict=None, impala_ha_settings:dict=None, 
                   autoscaling_min_cluster:int = None, autoscaling_max_cluster:int = None,
                   common_configs:dict = None, application_configs:dict = None, ldap_groups:list = None,
-                  enable_sso:bool = None, tags:dict = None):
+                  enable_sso:bool = None, query_isolation_options:dict=None, tags:dict = None,
+                  resource_pool:str=None, platform_jwt_auth:bool=False):
         
         if any(x is not None for x in [autoscaling_min_cluster, autoscaling_max_cluster]):
             autoscaling = {}
@@ -205,8 +226,11 @@ class CdpyDw(CdpSdkBase):
 
         return self.sdk.call(
             svc='dw', func='create_vw', ret_field='vwId', clusterId=cluster_id, dbcId=dbc_id,
-            vwType=vw_type, name=name, template=template, autoscaling=autoscaling, config=config,
-            tags=tag_list, squelch=[
+            vwType=vw_type, name=name, imageVersion=image_version, template=template, nodeCount=node_count,
+            enableUnifiedAnalytics=enable_unified_analytics, impalaOptions=impala_options, 
+            impalaHaSettings=impala_ha_settings, autoscaling=autoscaling, config=config, 
+            queryIsolationOptions=query_isolation_options, tags=tag_list, resourcePool=resource_pool, 
+            platformJwtAuth=platform_jwt_auth, squelch=[
                 Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ]
         )
@@ -272,3 +296,4 @@ class CdpyDw(CdpSdkBase):
             ],
             clusterId=cluster_id, dbcId=dbc_id
         )
+
