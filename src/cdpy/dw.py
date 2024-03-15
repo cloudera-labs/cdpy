@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from cdpy.common import CdpSdkBase, Squelch, CdpError, CdpWarning
+from cdpy.common import CdpSdkBase, Squelch, CdpError
 
 ENTITLEMENT_DISABLED = 'Data Warehousing not enabled on CDP Tenant'
 
@@ -133,8 +133,6 @@ class CdpyDw(CdpSdkBase):
                 outboundType=az_network_outbound_type, privateDNSZoneAKS=az_aks_private_dns_zone, computeInstanceTypes=az_compute_instance_types)
 
             azure_options = {k: v for k, v in azure_options_all.items() if v is not None}
-            # print("azure_options: {}".format(azure_options.str()))
-            self.sdk.throw_warning(CdpWarning("azure_options %s" % str(azure_options)))
         else:
             azure_options = None
         return self.sdk.call(
