@@ -186,15 +186,34 @@ class CdpyDw(CdpSdkBase):
 
     def create_vw(self, cluster_id: str, dbc_id: str, vw_type: str, name: str, template: str = None,
                   autoscaling_min_cluster: int = None, autoscaling_max_cluster: int = None,
-                  common_configs: dict = None, application_configs: dict = None, ldap_groups: list = None,
-                  enable_sso: bool = None, tags: dict = None):
+                  autoscaling_auto_suspend_timeout_seconds: int = None, autoscaling_disable_auto_suspend: bool = None,
+                  autoscaling_hive_desired_free_capacity: int = None, autoscaling_hive_scale_wait_time_seconds: int = None,
+                  autoscaling_impala_scale_down_delay_seconds: int = None, autoscaling_impala_scale_up_delay_seconds: int = None,
+                  autoscaling_pod_config_name: str = None, common_configs: dict = None, application_configs: dict = None, 
+                  ldap_groups: list = None, enable_sso: bool = None, tags: dict = None,
+                  enable_unified_analytics: bool = None, enable_platform_jwt_auth: bool = None,
+                  impala_ha_enable_catalog_high_availability: bool = None, impala_ha_enable_shutdown_of_coordinator: bool = None,
+                  impala_ha_high_availability_mode: str = None, impala_ha_num_of_active_coordinators: int = None, 
+                  impala_ha_shutdown_of_coordinator_delay_seconds: int = None
+                  ):
 
-        if any(x is not None for x in [autoscaling_min_cluster, autoscaling_max_cluster]):
-            autoscaling = {}
+        if any(x is not None for x in [autoscaling_min_cluster, autoscaling_max_cluster, autoscaling_auto_suspend_timeout_seconds,
+                                       autoscaling_disable_auto_suspend,
+                                       autoscaling_hive_desired_free_capacity,
+                                       autoscaling_hive_scale_wait_time_seconds,
+                                       autoscaling_impala_scale_down_delay_seconds,
+                                       autoscaling_impala_scale_up_delay_seconds,
+                                       autoscaling_pod_config_name]):
+            autoscaling_all = dict(autoSuspendTimeoutSeconds=autoscaling_auto_suspend_timeout_seconds, disableAutoSuspend=autoscaling_disable_auto_suspend, hiveDesiredFreeCapacity=autoscaling_hive_desired_free_capacity,
+                               hiveScaleWaitTimeSeconds=autoscaling_hive_scale_wait_time_seconds, impalaScaleDownDelaySeconds=autoscaling_impala_scale_down_delay_seconds, impalaScaleUpDelaySeconds=autoscaling_impala_scale_up_delay_seconds, podConfigName=autoscaling_pod_config_name)
             if autoscaling_min_cluster is not None and autoscaling_min_cluster != 0:
-                autoscaling['minClusters'] = autoscaling_min_cluster
+                autoscaling_all['minClusters'] = autoscaling_min_cluster
             if autoscaling_max_cluster is not None and autoscaling_max_cluster != 0:
-                autoscaling['maxClusters'] = autoscaling_max_cluster
+                autoscaling_all['maxClusters'] = autoscaling_max_cluster
+
+            autoscaling = {k: v for k,
+                             v in autoscaling_all.items() if v is not None}
+
         else:
             autoscaling = None
 
@@ -218,10 +237,24 @@ class CdpyDw(CdpSdkBase):
         else:
             config = None
 
+        if any(x is not None for x in [impala_ha_enable_catalog_high_availability, impala_ha_enable_shutdown_of_coordinator, impala_ha_high_availability_mode, impala_ha_num_of_active_coordinators, impala_ha_shutdown_of_coordinator_delay_seconds]):
+            
+            impala_ha_settings_all = dict(enableCatalogHighAvailability=impala_ha_enable_catalog_high_availability, enableShutdownOfCoordinator=impala_ha_enable_shutdown_of_coordinator, 
+                                highAvailabilityMode=impala_ha_high_availability_mode, numOfActiveCoordinators=impala_ha_num_of_active_coordinators, 
+                                shutdownOfCoordinatorDelaySeconds=impala_ha_shutdown_of_coordinator_delay_seconds)
+
+            impala_ha_settings = {k: v for k,
+                             v in impala_ha_settings_all.items() if v is not None}
+
+        else:
+            impala_ha_settings = None            
+
         return self.sdk.call(
             svc='dw', func='create_vw', ret_field='vwId', clusterId=cluster_id, dbcId=dbc_id,
             vwType=vw_type, name=name, template=template, autoscaling=autoscaling, config=config,
-            tags=tag_list, squelch=[
+            tags=tag_list, enableUnifiedAnalytics=enable_unified_analytics,
+            platformJwtAuth=enable_platform_jwt_auth, impalaHaSettings=impala_ha_settings,
+            squelch=[
                 Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ]
         )
