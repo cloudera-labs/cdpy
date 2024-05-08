@@ -143,7 +143,8 @@ class CdpyDw(CdpSdkBase):
             ]
         )
 
-    def create_data_visualization(self, cluster_id: str, name: str, config: dict = None):
+    def create_data_visualization(self, cluster_id: str, name: str, config: dict = None,
+                                   template_name: str = None, image_version: str = None):
         return self.sdk.call(
             svc='dw', func='create_data_visualization', ret_field='dataVisualizationId',
             squelch=[
@@ -152,6 +153,8 @@ class CdpyDw(CdpSdkBase):
             clusterId=cluster_id,
             name=name,
             config=config,
+            templateName = template_name,
+            imageVersion = image_version
         )
 
     def delete_cluster(self, cluster_id: str, force: bool = False):
