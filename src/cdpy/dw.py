@@ -118,7 +118,9 @@ class CdpyDw(CdpSdkBase):
                        aws_worker_subnets: list = None, az_subnet: str = None, az_enable_az: bool = None,
                        az_managed_identity: str = None, az_enable_private_aks: bool = None, az_enable_private_sql: bool = None,
                        az_enable_spot_instances: bool = None, az_log_analytics_workspace_id: str = None, az_network_outbound_type: str = None,
-                       az_aks_private_dns_zone: str = None, az_compute_instance_types: list = None, private_load_balancer: bool = None):
+                       az_aks_private_dns_zone: str = None, az_compute_instance_types: list = None, private_load_balancer: bool = None,
+                       public_worker_node: bool = None
+                       ):
         self.sdk.validate_crn(env_crn)
         if all(x is not None for x in [aws_worker_subnets, aws_lb_subnets]):
             aws_options = dict(lbSubnetIds=aws_lb_subnets,
@@ -138,7 +140,7 @@ class CdpyDw(CdpSdkBase):
         return self.sdk.call(
             svc='dw', func='create_cluster', ret_field='clusterId', environmentCrn=env_crn,
             useOverlayNetwork=overlay, usePrivateLoadBalancer=private_load_balancer,
-            awsOptions=aws_options, azureOptions=azure_options, squelch=[
+            usePublicWorkerNode=public_worker_node, awsOptions=aws_options, azureOptions=azure_options, squelch=[
                 Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ]
         )
