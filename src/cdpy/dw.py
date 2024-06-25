@@ -119,7 +119,9 @@ class CdpyDw(CdpSdkBase):
                        az_managed_identity: str = None, az_enable_private_aks: bool = None, az_enable_private_sql: bool = None,
                        az_enable_spot_instances: bool = None, az_log_analytics_workspace_id: str = None, az_network_outbound_type: str = None,
                        az_aks_private_dns_zone: str = None, az_compute_instance_types: list = None, private_load_balancer: bool = None,
-                       public_worker_node: bool = None
+                       public_worker_node: bool = None, custom_subdomain: str = None, database_backup_retention_period: int = None,
+                       reserved_compute_nodes: int = None, reserved_shared_services_nodes: int = None, resource_pool: str = None,
+                       lb_ip_ranges: list = None,  k8s_ip_ranges: list = None
                        ):
         self.sdk.validate_crn(env_crn)
         if all(x is not None for x in [aws_worker_subnets, aws_lb_subnets]):
@@ -140,7 +142,11 @@ class CdpyDw(CdpSdkBase):
         return self.sdk.call(
             svc='dw', func='create_cluster', ret_field='clusterId', environmentCrn=env_crn,
             useOverlayNetwork=overlay, usePrivateLoadBalancer=private_load_balancer,
-            usePublicWorkerNode=public_worker_node, awsOptions=aws_options, azureOptions=azure_options, squelch=[
+            usePublicWorkerNode=public_worker_node, awsOptions=aws_options, azureOptions=azure_options, 
+            customSubdomain=custom_subdomain, databaseBackupRetentionPeriod=database_backup_retention_period, 
+            reservedComputeNodes=reserved_compute_nodes, reservedSharedServicesNodes=reserved_shared_services_nodes,
+            resourcePool=resource_pool, whitelistK8sClusterAccessIpCIDRs=k8s_ip_ranges, whitelistWorkloadAccessIpCIDRs=lb_ip_ranges, 
+            squelch=[
                 Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
             ]
         )
