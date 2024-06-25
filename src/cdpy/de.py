@@ -77,7 +77,7 @@ class CdpyDe(CdpSdkBase):
             initial_instances=None, minimum_spot_instances=None, maximum_spot_instances=None, 
             initial_spot_instances=None, chart_value_overrides=None, enable_public_endpoint=False,
             enable_private_network=False, enable_workload_analytics=False, root_volume_size=None, 
-            skip_validation=False, tags=None, use_ssd=False, loadbalancer_allowlist=None, whitelist_ips=None):
+            skip_validation=False, tags=None, use_ssd=None, loadbalancer_allowlist=None, whitelist_ips=None):
         return self.sdk.call(
             svc='de', func='enable_service', ret_field='service', squelch=[
                 Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)    
