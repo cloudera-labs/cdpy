@@ -2,3 +2,4 @@
 .tox
 build
 .coverage
+src/cdpy.egg-info/
