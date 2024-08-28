@@ -68,3 +68,21 @@ class CdpyDatalake(CdpSdkBase):
                      ],
             datalakeName=datalake_name
         )
+
+    def restore_datalake_backup(self, datalake_name, backup_name=None, backup_id=None, backup_location_override=None, skip_atlas_indexes=None, skip_atlas_metadata=None, skip_ranger_audits=None, skip_ranger_hms_metadata=None, skip_validation=None, validation_only=None):
+        return self.sdk.call(
+            svc='datalake', func='restore_datalake', squelch=[],
+            datalakeName=datalake_name, backupName=backup_name,
+            backupId=backup_id, backupLocationOverride=backup_location_override,
+            skipAtlasIndexes=skip_atlas_indexes, skipAtlasMetadata=skip_atlas_metadata,
+            skipRangerAudits=skip_ranger_audits, skipRangerHmsMetadata=skip_ranger_hms_metadata,
+            skipValidation=skip_validation, validationOnly=validation_only
+        )        
+
+    def check_datalake_restore_status(self, datalake_name, restore_id=None):
+        return self.sdk.call(
+            svc='datalake', func='restore_datalake_status',
+            squelch=[Squelch('NOT_FOUND'), Squelch('UNKNOWN')
+                     ],
+            datalakeName=datalake_name, restoreId=restore_id
+        )
