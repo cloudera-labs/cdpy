@@ -158,6 +158,15 @@ class CdpyIam(CdpSdkBase):
             resourceRoleNames=roles
         )
 
+    def list_roles(self, roles=None):
+        return self.sdk.call(
+            svc='iam', func='list_roles', ret_field='roles', squelch=[
+                Squelch(field='error_code', value='NOT_FOUND', default=list(),
+                        warning='No Roles found for Names, %s' % str(roles))
+            ],
+            roleNames=roles
+        )
+    
     def get_account(self):
         return self.sdk.call(
             svc='iam', func='get_account', ret_field='account', squelch=[
