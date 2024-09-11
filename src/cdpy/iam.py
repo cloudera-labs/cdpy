@@ -174,3 +174,33 @@ class CdpyIam(CdpSdkBase):
                         warning='CDP Account could not be retrieved')
             ]
         )
+
+    def list_groups_for_user(self, user_id=None):
+        return self.sdk.call(
+            svc='iam', func='list_groups_for_user', ret_field='groupCrns', 
+            squelch=[
+                Squelch(field='error_code', value='NOT_FOUND', default=list(),
+                        warning='No users, %s' % str(user_id))
+            ],
+            userId=user_id
+        )
+
+    def list_user_assigned_roles(self, user=None):
+        return self.sdk.call(
+            svc='iam', func='list_user_assigned_roles', ret_field='roleCrns', 
+            squelch=[
+                Squelch(field='error_code', value='NOT_FOUND', default=list(),
+                        warning='No users, %s' % str(user))
+            ],
+            user=user
+        )
+
+    def list_user_assigned_resource_roles(self, user=None):
+        return self.sdk.call(
+            svc='iam', func='list_user_assigned_resource_roles', ret_field='resourceAssignments', 
+            squelch=[
+                Squelch(field='error_code', value='NOT_FOUND', default=list(),
+                        warning='No users, %s' % str(user))
+            ],
+            user=user
+        )
