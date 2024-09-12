@@ -73,7 +73,7 @@ class CdpyDe(CdpSdkBase):
             clusterId=cluster_id,
         )
 
-    def list_services(self, env=None, remove_deleted=False):
+    def list_services(self, remove_deleted=False):
         services = self.sdk.call(
             svc='de', func='list_services', ret_field='services', squelch=[
                 Squelch(value='NOT_FOUND', default=list()),
