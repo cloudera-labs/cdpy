@@ -140,6 +140,35 @@ class CdpyEnvironments(CdpSdkBase):
             self.sdk.throw_error(resp)
         return resp
 
+    def create_private_environment(self, env_name, address, user, authentication_token, cluster_names,
+                                  kube_config=None, authentication_token_type="CLEARTEXT_PASSWORD", 
+                                  namespace_prefix=None, domain=None, platform=None, docker_config_json=None, 
+                                  docker_user_pass=None, description=None, storage_class=None):
+        resp = self.sdk.call(
+            svc='environments', func='create_private_environment', ret_field='environment', ret_error=True,
+            squelch=[
+                Squelch(value='NOT_FOUND', default=list(),
+                        warning='No Workspaces found in Tenant'),
+                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED,
+                        default=list())
+            ],
+            environmentName=env_name,
+            address=address,
+            user=user,
+            authenticationToken=authentication_token,
+            clusterNames=cluster_names,
+            kubeConfig=kube_config,
+            authenticationTokenType=authentication_token_type,
+            namespacePrefix=namespace_prefix,
+            domain=domain,
+            platform=platform,
+            dockerConfigJson=docker_config_json,
+            dockerUserPass=docker_user_pass,
+            description=description,
+            storageClass=storage_class
+        )
+
+
     def stop_environment(self, name):
         return self.sdk.call(
             svc='environments', func='stop_environment', ret_field='environment', squelch=[
@@ -336,3 +365,36 @@ class CdpyEnvironments(CdpSdkBase):
                 return env_desc['crn'] if env_desc else None
         else:
             return None
+            
+    def check_database_connectivity(self, host, port, name, username, password):
+        return self.sdk.call(
+            svc='environments', func='check_database_connectivity',
+            ret_field='result',
+            host=host,
+            port=port,
+            name=name,
+            userName=username,
+            password=password
+        )
+
+    def check_environment_connectivity(self, address, user, authentication_token,
+                      authentication_token_type=None, cluster_names=None):
+        return self.sdk.call(
+            svc='environments', func='check_environment_connectivity',
+            ret_field='clusters',
+            address=address,
+            user=user,
+            authenticationToken=authentication_token,
+            authenticationTokenType=authentication_token_type,
+            clusterNames=cluster_names
+        )
+
+    def check_kubernetes_connectivity(self, kube_config, format=None):
+        return self.sdk.call(
+            svc='environments', func='check_kubernetes_connectivity',
+            ret_field='status',
+            kubeConfig=kube_config,
+            format=format
+        )    
+    
+
