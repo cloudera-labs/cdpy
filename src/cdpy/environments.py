@@ -336,3 +336,21 @@ class CdpyEnvironments(CdpSdkBase):
                 return env_desc['crn'] if env_desc else None
         else:
             return None
+
+    def upgrade_freeipa(self, env, allow_major_os_upgrade=None, image_id=None):
+        return self.sdk.call(
+            svc='environments', func='upgrade_freeipa', squelch=[],
+            environmentName=env, allowMajorOsUpgrade=allow_major_os_upgrade, image_id=image_id
+        )
+
+    def get_freeipa_status(self, env):
+        return self.sdk.call(
+            svc='environments', func='get_freeipa_status', squelch=[],
+            environmentName=env
+        )        
+
+    def get_freeipa_upgrade_options(self, env, catalog=None, allow_major_os_upgrade=None):
+        return self.sdk.call(
+            svc='environments', func='get_freeipa_upgrade_options', squelch=[],
+            environment=env, allowMajorOsUpgrade=allow_major_os_upgrade, catalog=catalog
+        )
