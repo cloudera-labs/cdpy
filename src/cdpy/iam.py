@@ -89,6 +89,29 @@ class CdpyIam(CdpSdkBase):
             groupName=group, resourceCrn=resource, resourceRoleCrn=role
         )
 
+    def assign_user_role(self, user, role):
+        return self.sdk.call(
+            svc='iam', func='assign_user_role', ret_field='user',
+            user=user, role=role
+        )
+
+    def unassign_user_role(self, user, role):
+        return self.sdk.call(
+            svc='iam', func='unassign_user_role', ret_field='user',
+            user=user, role=role
+        )
+    def assign_user_resource_role(self, user, resource, role):
+        return self.sdk.call(
+            svc='iam', func='assign_user_resource_role', ret_field='user',
+            user=user, resourceCrn=resource, resourceRoleCrn=role
+        )
+
+    def unassign_user_resource_role(self, user, resource, role):
+        return self.sdk.call(
+            svc='iam', func='unassign_user_resource_role', ret_field='user',
+            user=user, resourceCrn=resource, resourceRoleCrn=role
+        )
+
     def gather_groups(self, group_names=None):
         # TODO: Needs tests
         resp = self.list_groups(group_names=group_names)
