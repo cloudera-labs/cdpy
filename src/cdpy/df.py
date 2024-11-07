@@ -167,7 +167,9 @@ class CdpyDf(CdpSdkBase):
     def list_flow_definitions(self, name=None):
         # Lists definitions in the Catalog. May contain more than one artefactType: flows, readyFlows
         result = self.sdk.call(
-            svc='df', func='list_flow_definitions', ret_field='flows', squelch=[
+            svc='df', func='list_flow_definitions', ret_field='flows', 
+            pageSize=self.sdk.DEFAULT_PAGE_SIZE,
+            squelch=[
                 Squelch(value='NOT_FOUND',
                         warning='No Flow Definitions found within your CDP Tenant Catalog'),
                 Squelch(value='PATH_DISABLED',

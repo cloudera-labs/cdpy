@@ -569,8 +569,12 @@ class CdpcliWrapper(object):
         # Used in main call() function
         while 'nextToken' in response:
             token = response.pop('nextToken')
-            next_page = call_function(
-                **payload, startingToken=token, pageSize=self.DEFAULT_PAGE_SIZE)
+            if 'pageSize' not in payload.keys():
+                next_page = call_function(
+                    **payload, startingToken=token, pageSize=self.DEFAULT_PAGE_SIZE)
+            else:
+                next_page = call_function(
+                    **payload, startingToken=token)
             for key in next_page.keys():
                 if isinstance(next_page[key], str):
                     response[key] = next_page[key]
