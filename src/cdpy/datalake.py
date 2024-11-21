@@ -86,3 +86,34 @@ class CdpyDatalake(CdpSdkBase):
                      ],
             datalakeName=datalake_name, restoreId=restore_id
         )
+
+    def prepare_datalake_upgrade(self, datalake_name, image_id=None, runtime=None):
+        return self.sdk.call(
+            svc='datalake', func='prepare_datalake_upgrade',
+            squelch=[Squelch('NOT_FOUND'), Squelch('UNKNOWN')
+                     ],
+            datalake=datalake_name, imageId=image_id, runtime=runtime
+        )
+
+    def datalake_upgrade(self, datalake_name, image_id=None, runtime=None, 
+                         os_only_upgrade=None, rolling_upgrade=None, skip_atlas_metadata=None, 
+                         skip_backup=None, skip_backup_validation=None, 
+                         skip_ranger_audits=None, skip_ranger_hms_metadata=None):
+        return self.sdk.call(
+            svc='datalake', func='upgrade_datalake',
+            squelch=[Squelch('NOT_FOUND'), Squelch('UNKNOWN')
+                     ],
+            datalakeName=datalake_name, imageId=image_id, runtime=runtime, 
+            lockComponents=os_only_upgrade, rollingUpgradeEnabled=rolling_upgrade,
+            skipAtlasMetadata=skip_atlas_metadata, skipBackup=skip_backup, skipBackupValidation=skip_backup_validation,
+            skipRangerAudits=skip_ranger_audits, skipRangerHmsMetadata=skip_ranger_hms_metadata
+        )
+
+    def check_datalake_upgrade(self, datalake_name):
+        return self.sdk.call(
+            svc='datalake', func='upgrade_datalake',
+            squelch=[Squelch('NOT_FOUND'), Squelch('UNKNOWN')
+                     ],
+            datalakeName=datalake_name, 
+            showAvailableImages=True
+        )
