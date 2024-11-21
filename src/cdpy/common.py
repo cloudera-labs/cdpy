@@ -474,7 +474,7 @@ class CdpcliWrapper(object):
 
     def wait_for_state(self, describe_func, params: dict, field: Union[str, None, list] = 'status',
                        state: Union[list, str, None] = None, delay: int = 15, timeout: int = 3600,
-                       ignore_failures: bool = False):
+                       ignore_failures: bool = False, state_confirmation_retries: int = 0):
         """
         Proceses a loop waiting for a given function to achieve a given state or known failure states
 
@@ -489,6 +489,7 @@ class CdpcliWrapper(object):
             delay (int): Delay in seconds between each poll of the describe_func. Default is 15
             timeout (int): Total wait time in seconds before the function should return a timeout. Default is 3600
             ignore_failures (bool): Whether to ignore failed states when waiting for a forced deletion
+            state_confirmation_retries (int): Number of retry iterations once valid state is reached. Default is 0 (i.e. disabled)
 
         Returns: Output of describe function received during last polling attempt.
         """
@@ -498,6 +499,7 @@ class CdpcliWrapper(object):
         if field is not None:
             field = field if isinstance(field, list) else [field]
         start_time = time()
+        retry_count = 0 # counter for number of retries
         while time() < start_time + timeout:
             current = describe_func(**params)
             if current is None:
@@ -530,7 +532,12 @@ class CdpcliWrapper(object):
                     self.logger.info("Waiting to find field {0} in function {1} response"
                                      .format(field, describe_func))
                 elif current_status in state:
-                    return current
+                    if retry_count >= state_confirmation_retries:
+                        return current
+                    else:
+                        # increment retry counter and loop again to confirm valid state has been reached
+                        self.logger.info("State confirmation retry #{0} in state {1}".format(retry_count, current_status))
+                        retry_count = retry_count + 1 
                 elif current_status in self.FAILED_STATES:
                     status_reason = 'None provided'
                     for fail_msg_field in ['statusReason', 'failureMessage']:
