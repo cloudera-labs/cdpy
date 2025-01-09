@@ -152,7 +152,7 @@ class CdpyDw(CdpSdkBase):
         )
 
     def create_data_visualization(self, cluster_id: str, name: str, config: dict = None,
-                                   template_name: str = None, image_version: str = None):
+                                   resource_template: str = None, image_version: str = None):
         return self.sdk.call(
             svc='dw', func='create_data_visualization', ret_field='dataVisualizationId',
             squelch=[
@@ -161,7 +161,7 @@ class CdpyDw(CdpSdkBase):
             clusterId=cluster_id,
             name=name,
             config=config,
-            templateName = template_name,
+            resourceTemplate = resource_template,
             imageVersion = image_version
         )
 
@@ -195,7 +195,7 @@ class CdpyDw(CdpSdkBase):
             config=config,
         )
 
-    def create_vw(self, cluster_id: str, dbc_id: str, vw_type: str, name: str, template: str = None,
+    def create_vw(self, cluster_id: str, dbc_id: str, vw_type: str, name: str, tshirt_size: str = None,
                   autoscaling_min_cluster: int = None, autoscaling_max_cluster: int = None,
                   autoscaling_auto_suspend_timeout_seconds: int = None, autoscaling_disable_auto_suspend: bool = None,
                   autoscaling_hive_desired_free_capacity: int = None, autoscaling_hive_scale_wait_time_seconds: int = None,
@@ -262,7 +262,7 @@ class CdpyDw(CdpSdkBase):
 
         return self.sdk.call(
             svc='dw', func='create_vw', ret_field='vwId', clusterId=cluster_id, dbcId=dbc_id,
-            vwType=vw_type, name=name, template=template, autoscaling=autoscaling, config=config,
+            vwType=vw_type, name=name, tShirtSize=tshirt_size, autoscaling=autoscaling, config=config,
             tags=tag_list, enableUnifiedAnalytics=enable_unified_analytics,
             platformJwtAuth=enable_platform_jwt_auth, impalaHaSettings=impala_ha_settings,
             squelch=[
