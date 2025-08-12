@@ -28,6 +28,8 @@ Documentation = "https://github.com/cloudera-labs/cdpy/"
 
 [tool.hatch.version]
 path = "src/cdpy/__version__.py"
+scheme = "semver"
+validate-bump = true
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -42,7 +44,8 @@ dependencies = [
   "pytest-cov",
   "wheel",
   "flake8",
-  "pre-commit"
+  "pre-commit",
+  "cdpcli-beta>=0.9.101",
 ]
 
 [tool.hatch.envs.default.scripts]
@@ -74,5 +77,8 @@ dependencies = [
 python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
 [build-system]
-requires = ["hatchling"]
+requires = [
+  "hatchling",
+  "hatch-semver"
+]
 build-backend = "hatchling.build"
