@@ -365,9 +365,11 @@ class CdpyDf(CdpSdkBase):
             environmentCrn=self.resolve_env_crn_from_df_crn(df_crn),
             clusterSizeName=size_name if size_name is not None else 'EXTRA_SMALL',
             cfmNifiVersion=nifi_ver,
-            kpis=kpis,
-            inboundHostname=inbound_hostname
+            kpis=kpis
         )
+
+        if inbound_hostname is not None:
+            config['inboundHostname'] = inbound_hostname
 
         if listen_components is not None:
             config['listenComponents'] = listen_components
