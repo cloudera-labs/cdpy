@@ -76,7 +76,8 @@ class CdpyDe(CdpSdkBase):
     def enable_service(self, name, env, instance_type, minimum_instances, maximum_instances, 
             initial_instances=None, minimum_spot_instances=None, maximum_spot_instances=None, 
             initial_spot_instances=None, chart_value_overrides=None, enable_public_endpoint=False,
-            enable_private_network=False, enable_workload_analytics=False, root_volume_size=None, 
+            enable_private_network=False, enable_workload_analytics=False, root_volume_size=None,
+            resource_pool=None, cpu_requests=None, memory_requests=None, gpu_requests=None, 
             skip_validation=False, tags=None, use_ssd=None, loadbalancer_allowlist=None, whitelist_ips=None):
         return self.sdk.call(
             svc='de', func='enable_service', ret_field='service', squelch=[
@@ -96,6 +97,10 @@ class CdpyDe(CdpSdkBase):
             enablePrivateNetwork=enable_private_network,
             enableWorkloadAnalytics=enable_workload_analytics,
             rootVolumeSize=root_volume_size,
+            resourcePool=resource_pool,
+            cpuRequests=cpu_requests,
+            memoryRequests=memory_requests,
+            gpuRequests=gpu_requests,
             skipValidation=skip_validation,
             tags=tags,
             useSsd=use_ssd,
