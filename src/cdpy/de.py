@@ -31,7 +31,7 @@ class CdpyDe(CdpSdkBase):
         )
 
     def create_vc(self, name, cluster_id, cpu_requests, memory_requests, chart_value_overrides=None,
-                  runtime_spot_component=None, spark_version=None, acl_users=None):
+                  runtime_spot_component=None, spark_version=None, acl_users=None, vc_tier=None):
         return self.sdk.call(
             svc='de', func='create_vc', ret_field='Vc', squelch=[
                 Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)    
@@ -43,7 +43,8 @@ class CdpyDe(CdpSdkBase):
             chartValueOverrides=chart_value_overrides,
             runtimeSpotComponent=runtime_spot_component,
             sparkVersion=spark_version,
-            aclUsers=acl_users
+            aclUsers=acl_users,
+            vcTier=vc_tier
         )
 
     def delete_vc(self, cluster_id, vc_id):
