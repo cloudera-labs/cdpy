@@ -457,9 +457,23 @@ class CdpyDf(CdpSdkBase):
                 )
             )
 
-    def create_deployment(self, df_crn, flow_ver_crn, deployment_name, size_name=None, static_node_count=None,
-                          autoscale_enabled=None, autoscale_nodes_min=None, autoscale_nodes_max=None, nifi_ver=None,
-                          autostart_flow=None, parameter_groups=None, kpis=None, inbound_hostname=None, listen_components=None):
+    def create_deployment(
+        self,
+        df_crn,
+        flow_ver_crn,
+        deployment_name,
+        size_name=None,
+        static_node_count=None,
+        autoscale_enabled=None,
+        autoscale_nodes_min=None,
+        autoscale_nodes_max=None,
+        nifi_ver=None,
+        autostart_flow=None,
+        parameter_groups=None,
+        kpis=None,
+        inbound_hostname=None,
+        listen_components=None,
+    ):
         # Validations
         if size_name is not None and size_name not in self.DEPLOYMENT_SIZES:
             self.sdk.throw_error(
@@ -488,10 +502,10 @@ class CdpyDf(CdpSdkBase):
         )
 
         if inbound_hostname is not None:
-            config['inboundHostname'] = inbound_hostname
+            config["inboundHostname"] = inbound_hostname
 
         if listen_components is not None:
-            config['listenComponents'] = listen_components
+            config["listenComponents"] = listen_components
 
         if autoscale_enabled:
             config["autoScalingEnabled"] = True

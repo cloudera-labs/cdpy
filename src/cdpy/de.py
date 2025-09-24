@@ -41,8 +41,18 @@ class CdpyDe(CdpSdkBase):
             clusterId=cluster_id,
         )
 
-    def create_vc(self, name, cluster_id, cpu_requests, memory_requests, chart_value_overrides=None,
-                  runtime_spot_component=None, spark_version=None, acl_users=None, vc_tier=None):
+    def create_vc(
+        self,
+        name,
+        cluster_id,
+        cpu_requests,
+        memory_requests,
+        chart_value_overrides=None,
+        runtime_spot_component=None,
+        spark_version=None,
+        acl_users=None,
+        vc_tier=None,
+    ):
         return self.sdk.call(
             svc="de",
             func="create_vc",
@@ -56,7 +66,7 @@ class CdpyDe(CdpSdkBase):
             runtimeSpotComponent=runtime_spot_component,
             sparkVersion=spark_version,
             aclUsers=acl_users,
-            vcTier=vc_tier
+            vcTier=vc_tier,
         )
 
     def delete_vc(self, cluster_id, vc_id):
@@ -100,12 +110,32 @@ class CdpyDe(CdpSdkBase):
         )
         return [s for s in services if env is None or s["environmentName"] == env]
 
-    def enable_service(self, name, env, instance_type, minimum_instances, maximum_instances, 
-            initial_instances=None, minimum_spot_instances=None, maximum_spot_instances=None, 
-            initial_spot_instances=None, chart_value_overrides=None, enable_public_endpoint=False,
-            enable_private_network=False, enable_workload_analytics=False, root_volume_size=None,
-            resource_pool=None, cpu_requests=None, memory_requests=None, gpu_requests=None, 
-            skip_validation=False, tags=None, use_ssd=None, loadbalancer_allowlist=None, whitelist_ips=None):
+    def enable_service(
+        self,
+        name,
+        env,
+        instance_type,
+        minimum_instances,
+        maximum_instances,
+        initial_instances=None,
+        minimum_spot_instances=None,
+        maximum_spot_instances=None,
+        initial_spot_instances=None,
+        chart_value_overrides=None,
+        enable_public_endpoint=False,
+        enable_private_network=False,
+        enable_workload_analytics=False,
+        root_volume_size=None,
+        resource_pool=None,
+        cpu_requests=None,
+        memory_requests=None,
+        gpu_requests=None,
+        skip_validation=False,
+        tags=None,
+        use_ssd=None,
+        loadbalancer_allowlist=None,
+        whitelist_ips=None,
+    ):
         return self.sdk.call(
             svc="de",
             func="enable_service",

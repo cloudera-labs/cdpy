@@ -152,23 +152,43 @@ class CdpyDw(CdpSdkBase):
                 )
         return out
 
-    def create_cluster(self, env_crn: str, overlay: bool, aws_lb_subnets: list = None,
-                       aws_worker_subnets: list = None, az_subnet: str = None, az_enable_az: bool = None,
-                       az_managed_identity: str = None, az_enable_private_aks: bool = None, az_enable_private_sql: bool = None,
-                       az_enable_spot_instances: bool = None, az_log_analytics_workspace_id: str = None, az_network_outbound_type: str = None,
-                       az_aks_private_dns_zone: str = None, az_compute_instance_types: list = None, private_load_balancer: bool = None,
-                       public_worker_node: bool = None, custom_subdomain: str = None, database_backup_retention_period: int = None,
-                       reserved_compute_nodes: int = None, reserved_shared_services_nodes: int = None, resource_pool: str = None,
-                       lb_ip_ranges: list = None,  k8s_ip_ranges: list = None, pvc_storage_class: str = None, pvc_db_client_cert: str = None, pvc_db_client_key: str = None,
-                       private_cloud_options: dict = None
-                       ):
+    def create_cluster(
+        self,
+        env_crn: str,
+        overlay: bool,
+        aws_lb_subnets: list = None,
+        aws_worker_subnets: list = None,
+        az_subnet: str = None,
+        az_enable_az: bool = None,
+        az_managed_identity: str = None,
+        az_enable_private_aks: bool = None,
+        az_enable_private_sql: bool = None,
+        az_enable_spot_instances: bool = None,
+        az_log_analytics_workspace_id: str = None,
+        az_network_outbound_type: str = None,
+        az_aks_private_dns_zone: str = None,
+        az_compute_instance_types: list = None,
+        private_load_balancer: bool = None,
+        public_worker_node: bool = None,
+        custom_subdomain: str = None,
+        database_backup_retention_period: int = None,
+        reserved_compute_nodes: int = None,
+        reserved_shared_services_nodes: int = None,
+        resource_pool: str = None,
+        lb_ip_ranges: list = None,
+        k8s_ip_ranges: list = None,
+        pvc_storage_class: str = None,
+        pvc_db_client_cert: str = None,
+        pvc_db_client_key: str = None,
+        private_cloud_options: dict = None,
+    ):
         self.sdk.validate_crn(env_crn)
         if all(x is not None for x in [aws_worker_subnets, aws_lb_subnets]):
             aws_options = dict(
                 lbSubnetIds=aws_lb_subnets, workerSubnetIds=aws_worker_subnets
             )
         else:
-            aws_options = None            
+            aws_options = None
         if all(x is not None for x in [az_subnet, az_enable_az, az_managed_identity]):
             azure_options_all = dict(
                 subnetId=az_subnet,
@@ -189,30 +209,43 @@ class CdpyDw(CdpSdkBase):
         else:
             azure_options = None
 
-        if any(x is not None for x in [pvc_storage_class, pvc_db_client_cert, pvc_db_client_key]):
+        if any(
+            x is not None
+            for x in [pvc_storage_class, pvc_db_client_cert, pvc_db_client_key]
+        ):
             private_cloud_options = {
-                'storageClass': pvc_storage_class,
-                'dbClientCredentials': {
-                    'certificate': pvc_db_client_cert,
-                    'privateKey': pvc_db_client_key
-                }
+                "storageClass": pvc_storage_class,
+                "dbClientCredentials": {
+                    "certificate": pvc_db_client_cert,
+                    "privateKey": pvc_db_client_key,
+                },
             }
             # Remove keys with None values
-            private_cloud_options = {k: v for k, v in private_cloud_options.items() if v is not None}
+            private_cloud_options = {
+                k: v for k, v in private_cloud_options.items() if v is not None
+            }
         else:
             private_cloud_options = {}
 
         return self.sdk.call(
-            svc='dw', func='create_cluster', ret_field='clusterId', environmentCrn=env_crn,
-            useOverlayNetwork=overlay, usePrivateLoadBalancer=private_load_balancer,
-            usePublicWorkerNode=public_worker_node, awsOptions=aws_options, azureOptions=azure_options, 
-            customSubdomain=custom_subdomain, databaseBackupRetentionPeriod=database_backup_retention_period, 
-            reservedComputeNodes=reserved_compute_nodes, reservedSharedServicesNodes=reserved_shared_services_nodes,
-            resourcePool=resource_pool, whitelistK8sClusterAccessIpCIDRs=k8s_ip_ranges, whitelistWorkloadAccessIpCIDRs=lb_ip_ranges, 
+            svc="dw",
+            func="create_cluster",
+            ret_field="clusterId",
+            environmentCrn=env_crn,
+            useOverlayNetwork=overlay,
+            usePrivateLoadBalancer=private_load_balancer,
+            usePublicWorkerNode=public_worker_node,
+            awsOptions=aws_options,
+            azureOptions=azure_options,
+            customSubdomain=custom_subdomain,
+            databaseBackupRetentionPeriod=database_backup_retention_period,
+            reservedComputeNodes=reserved_compute_nodes,
+            reservedSharedServicesNodes=reserved_shared_services_nodes,
+            resourcePool=resource_pool,
+            whitelistK8sClusterAccessIpCIDRs=k8s_ip_ranges,
+            whitelistWorkloadAccessIpCIDRs=lb_ip_ranges,
             privateCloudOptions=private_cloud_options,
-            squelch=[
-                Squelch(value='PATH_DISABLED', warning=ENTITLEMENT_DISABLED)
-            ]
+            squelch=[Squelch(value="PATH_DISABLED", warning=ENTITLEMENT_DISABLED)],
         )
 
     def create_data_visualization(
