@@ -1,7 +1,9 @@
 [project]
 name = "cdpy"
 description = "A Pythonic client wrapper for Cloudera CDP CLI"
-license = "Apache-2.0"
+license-files = {
+  paths = ["LICENSE.txt", "NOTICE.txt"]
+}
 authors = [
     { name = "Cloudera, Inc.", email = "cloudera-labs@cloudera.com" }
 ]
@@ -14,7 +16,7 @@ classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python"
 ]
-readme = "README.rst"
+readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
   "importlib-metadata",
@@ -23,7 +25,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Documentation = "https://github.com/cloudera-labs/cdpy/"
+Documentation = "https://github.com/cloudera-labs/cdpy/README.md"
 "Source Code" = "https://github.com/cloudera-labs/cdpy/"
 
 [tool.hatch.version]
