@@ -50,6 +50,9 @@ dependencies = [
 
 [tool.hatch.envs.default.scripts]
 test = 'pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=cdpy --cov=tests'
+lint = [
+  'pre-commit run --all-files'
+]
 
 [tool.flake8]
 # Some sane defaults for the code style checker flake8
