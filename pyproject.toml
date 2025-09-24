@@ -1,9 +1,78 @@
-[build-system]
-# AVOID CHANGING REQUIRES: IT WILL BE UPDATED BY PYSCAFFOLD!
-requires = ["setuptools>=46.1.0", "setuptools_scm[toml]>=5"]
-build-backend = "setuptools.build_meta"
+[project]
+name = "cdpy"
+description = "A Pythonic client wrapper for Cloudera CDP CLI"
+license = "Apache-2.0"
+authors = [
+    { name = "Cloudera, Inc.", email = "cloudera-labs@cloudera.com" }
+]
+keywords = [
+    "cloudera",
+    "cdp",
+    "ansible-navigator",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python"
+]
+readme = "README.rst"
+requires-python = ">=3.8"
+dependencies = [
+  "importlib-metadata",
+  "cdpcli-beta>=0.9.101"
+]
+dynamic = ["version"]
 
-[tool.setuptools_scm]
-# For smarter version schemes and other configuration options,
-# check out https://github.com/pypa/setuptools_scm
-version_scheme = "no-guess-dev"
+[project.urls]
+Documentation = "https://github.com/cloudera-labs/cdpy/"
+"Source Code" = "https://github.com/cloudera-labs/cdpy/"
+
+[tool.hatch.version]
+path = "src/cdpy/__version__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src",
+  "/tests",
+]
+
+[tool.hatch.envs.default]
+dependencies = [
+  "coverage[toml]",
+  "pytest",
+  "pytest-cov",
+  "wheel",
+  "flake8",
+  "pre-commit"
+]
+
+[tool.hatch.envs.default.scripts]
+test = 'pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=cdpy --cov=tests'
+
+[tool.flake8]
+# Some sane defaults for the code style checker flake8
+exclude = [
+  "build",
+  "dist",
+  ".eggs",
+  "docs/conf.py",
+]
+
+[tool.hatch.envs.docs]
+dependencies = [
+  "sphinx"
+]
+
+[tool.hatch.envs.docs.scripts]
+
+[tool.hatch.envs.test]
+dependencies = [
+  "pytest",
+  "pytest-sugar"
+]
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

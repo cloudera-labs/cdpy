@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-import pkg_resources
 from time import time, sleep
 import html
 import io
@@ -28,6 +27,8 @@ from cdpcli.loader import Loader
 from cdpcli.parser import ResponseParserFactory
 from cdpcli.retryhandler import create_retry_handler
 from cdpcli.translate import build_retry_config
+
+from cdpy.__version__ import VERSION
 
 
 class CdpWarning(UserWarning):
@@ -291,7 +292,7 @@ class CdpcliWrapper(object):
         }
 
     def _make_user_agent_header(self):
-        cdpy_version = pkg_resources.get_distribution('cdpy').version
+        cdpy_version = VERSION
         return '%s CDPY/%s CDPCLI/%s Python/%s %s/%s' % (
             self.agent_header,
             cdpy_version,
@@ -641,7 +642,7 @@ class CdpcliWrapper(object):
             full_response = raw_response
         return full_response
 
-    def call(self, svc: str, func: str, ret_field: str = None, squelch: ['Squelch'] = None, ret_error: bool = False,
+    def call(self, svc: str, func: str, ret_field: str = None, squelch: list['Squelch'] = None, ret_error: bool = False,
              redirect_headers: dict = None, **kwargs: Union[dict, bool, str, list]) -> Union[list, dict, 'CdpError']:
         """
         Wraps the call to an underlying CDP CLI Service, handles common errors, and parses output
