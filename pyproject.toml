@@ -1,16 +1,14 @@
 [project]
 name = "cdpy"
-description = "A Pythonic client wrapper for Cloudera CDP CLI"
-license-files = {
-  paths = ["LICENSE.txt", "NOTICE.txt"]
-}
+description = "A Pythonic client wrapper for Cloudera on Cloud"
+license = "Apache-2.0"
+license-files = ["LICENSE*", "NOTICE*"]
 authors = [
     { name = "Cloudera, Inc.", email = "cloudera-labs@cloudera.com" }
 ]
 keywords = [
     "cloudera",
     "cdp",
-    "ansible-navigator",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -26,7 +24,7 @@ dynamic = ["version"]
 
 [project.urls]
 Documentation = "https://github.com/cloudera-labs/cdpy/README.md"
-"Source Code" = "https://github.com/cloudera-labs/cdpy/"
+Source = "https://github.com/cloudera-labs/cdpy/"
 
 [tool.hatch.version]
 path = "src/cdpy/__version__.py"
@@ -47,13 +45,18 @@ dependencies = [
   "wheel",
   "flake8",
   "pre-commit",
-  "cdpcli-beta>=0.9.101",
+  "twine",
 ]
 
 [tool.hatch.envs.default.scripts]
-test = 'pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=cdpy --cov=tests'
+test = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=cdpy --cov=tests"
 lint = [
-  'pre-commit run --all-files'
+  "pre-commit run --all-files"
+]
+test-publish = [
+  "rm -f dist/*",
+  "hatch build",
+  "twine upload --repository testpypi dist/*"
 ]
 
 [tool.flake8]

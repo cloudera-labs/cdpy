@@ -24,7 +24,7 @@ git+https://github.com/cloudera-labs/cdpy@devel#egg=cdpy
 
 ## Usage
 
-> [!note]
+> [!NOTE]
 > Note that this readme covers usage of this wrapper library only, for details of CDPCLI and underlying commands please see the CDPCLI documentation.
 
 Basic function call with defaults where credentials are already available in user profile
@@ -149,7 +149,7 @@ client.sdk.TERMINATION_STATES
 etc.
 ```
 
-##Contributing
+## Contributing
 
 Please create a feature branch from the current development Branch then submit a PR referencing an Issue for discussion.
 
