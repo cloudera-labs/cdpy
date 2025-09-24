@@ -45,18 +45,12 @@ dependencies = [
   "wheel",
   "flake8",
   "pre-commit",
-  "twine",
 ]
 
 [tool.hatch.envs.default.scripts]
 test = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=cdpy --cov=tests"
 lint = [
   "pre-commit run --all-files"
-]
-test-publish = [
-  "rm -f dist/*",
-  "hatch build",
-  "twine upload --repository testpypi dist/*"
 ]
 
 [tool.flake8]
