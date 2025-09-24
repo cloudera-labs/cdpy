@@ -115,7 +115,7 @@ class CdpyDe(CdpSdkBase):
             tags=tags,
             useSsd=use_ssd,
             whitelistIps=whitelist_ips,
-            loadbalancerAllowlist=loadbalancer_allowlist
+            loadbalancerAllowlist=loadbalancer_allowlist,
             subnets=subnets,
             cpuRequests=cpu_requests,
             memoryRequests=memory_requests,
