@@ -9,111 +9,178 @@ class CdpyDatalake(CdpSdkBase):
 
     def list_datalakes(self, name=None):
         return self.sdk.call(
-            svc='datalake', func='list_datalakes', ret_field='datalakes', squelch=[Squelch('NOT_FOUND')],
-            environmentName=name
+            svc="datalake",
+            func="list_datalakes",
+            ret_field="datalakes",
+            squelch=[Squelch("NOT_FOUND")],
+            environmentName=name,
         )
 
     def is_datalake_running(self, environment_name):
         resp = self.list_datalakes(environment_name)
         if resp and len(resp) == 1:
-            if resp[0]['status'] in self.sdk.STARTED_STATES:
+            if resp[0]["status"] in self.sdk.STARTED_STATES:
                 return True
         return False
 
     def describe_datalake(self, name):
         return self.sdk.call(
-            svc='datalake', func='describe_datalake', ret_field='datalake',
-            squelch=[Squelch('NOT_FOUND'), Squelch('UNKNOWN')
-                     ],
-            datalakeName=name
+            svc="datalake",
+            func="describe_datalake",
+            ret_field="datalake",
+            squelch=[Squelch("NOT_FOUND"), Squelch("UNKNOWN")],
+            datalakeName=name,
         )
 
     def delete_datalake(self, name, force=False):
         return self.sdk.call(
-            svc='datalake', func='delete_datalake', squelch=[Squelch('NOT_FOUND')],
-            datalakeName=name, force=force
+            svc="datalake",
+            func="delete_datalake",
+            squelch=[Squelch("NOT_FOUND")],
+            datalakeName=name,
+            force=force,
         )
 
     def describe_all_datalakes(self, environment_name=None):
         datalakes_listing = self.list_datalakes(environment_name)
         if datalakes_listing:
-            return [self.describe_datalake(datalake['datalakeName']) for datalake in datalakes_listing]
+            return [
+                self.describe_datalake(datalake["datalakeName"])
+                for datalake in datalakes_listing
+            ]
         return datalakes_listing
 
-    def create_datalake_backup(self, datalake_name, backup_name=None, backup_location=None,
-                               close_db_connections=None, skip_atlas_indexes=None, skip_atlas_metadata=None,
-                               skip_ranger_audits=None, skip_ranger_hms_metadata=None,
-                               skip_validation=None, validation_only=None):
+    def create_datalake_backup(
+        self,
+        datalake_name,
+        backup_name=None,
+        backup_location=None,
+        close_db_connections=None,
+        skip_atlas_indexes=None,
+        skip_atlas_metadata=None,
+        skip_ranger_audits=None,
+        skip_ranger_hms_metadata=None,
+        skip_validation=None,
+        validation_only=None,
+    ):
         return self.sdk.call(
-            svc='datalake', func='backup_datalake', squelch=[],
-            datalakeName=datalake_name, backupName=backup_name,
-            backupLocation=backup_location, closeDbConnections=close_db_connections,
-            skipAtlasIndexes=skip_atlas_indexes, skipAtlasMetadata=skip_atlas_metadata,
-            skipRangerAudits=skip_ranger_audits, skipRangerHmsMetadata=skip_ranger_hms_metadata,
-            skipValidation=skip_validation, validationOnly=validation_only
+            svc="datalake",
+            func="backup_datalake",
+            squelch=[],
+            datalakeName=datalake_name,
+            backupName=backup_name,
+            backupLocation=backup_location,
+            closeDbConnections=close_db_connections,
+            skipAtlasIndexes=skip_atlas_indexes,
+            skipAtlasMetadata=skip_atlas_metadata,
+            skipRangerAudits=skip_ranger_audits,
+            skipRangerHmsMetadata=skip_ranger_hms_metadata,
+            skipValidation=skip_validation,
+            validationOnly=validation_only,
         )
 
-    def check_datalake_backup_status(self, datalake_name, backup_id=None, backup_name=None):
+    def check_datalake_backup_status(
+        self, datalake_name, backup_id=None, backup_name=None
+    ):
         return self.sdk.call(
-            svc='datalake', func='backup_datalake_status',
-            squelch=[Squelch('NOT_FOUND'), Squelch('UNKNOWN')
-                     ],
-            datalakeName=datalake_name, backupId=backup_id, backupName=backup_name
+            svc="datalake",
+            func="backup_datalake_status",
+            squelch=[Squelch("NOT_FOUND"), Squelch("UNKNOWN")],
+            datalakeName=datalake_name,
+            backupId=backup_id,
+            backupName=backup_name,
         )
 
     def list_datalake_backups(self, datalake_name):
         return self.sdk.call(
-            svc='datalake', func='list_datalake_backups',
-            squelch=[Squelch('NOT_FOUND'), Squelch('UNKNOWN')
-                     ],
-            datalakeName=datalake_name
+            svc="datalake",
+            func="list_datalake_backups",
+            squelch=[Squelch("NOT_FOUND"), Squelch("UNKNOWN")],
+            datalakeName=datalake_name,
         )
 
-    def restore_datalake_backup(self, datalake_name, backup_name=None, backup_id=None, backup_location_override=None, skip_atlas_indexes=None, skip_atlas_metadata=None, skip_ranger_audits=None, skip_ranger_hms_metadata=None, skip_validation=None, validation_only=None):
+    def restore_datalake_backup(
+        self,
+        datalake_name,
+        backup_name=None,
+        backup_id=None,
+        backup_location_override=None,
+        skip_atlas_indexes=None,
+        skip_atlas_metadata=None,
+        skip_ranger_audits=None,
+        skip_ranger_hms_metadata=None,
+        skip_validation=None,
+        validation_only=None,
+    ):
         return self.sdk.call(
-            svc='datalake', func='restore_datalake', squelch=[],
-            datalakeName=datalake_name, backupName=backup_name,
-            backupId=backup_id, backupLocationOverride=backup_location_override,
-            skipAtlasIndexes=skip_atlas_indexes, skipAtlasMetadata=skip_atlas_metadata,
-            skipRangerAudits=skip_ranger_audits, skipRangerHmsMetadata=skip_ranger_hms_metadata,
-            skipValidation=skip_validation, validationOnly=validation_only
-        )        
+            svc="datalake",
+            func="restore_datalake",
+            squelch=[],
+            datalakeName=datalake_name,
+            backupName=backup_name,
+            backupId=backup_id,
+            backupLocationOverride=backup_location_override,
+            skipAtlasIndexes=skip_atlas_indexes,
+            skipAtlasMetadata=skip_atlas_metadata,
+            skipRangerAudits=skip_ranger_audits,
+            skipRangerHmsMetadata=skip_ranger_hms_metadata,
+            skipValidation=skip_validation,
+            validationOnly=validation_only,
+        )
 
     def check_datalake_restore_status(self, datalake_name, restore_id=None):
         return self.sdk.call(
-            svc='datalake', func='restore_datalake_status',
-            squelch=[Squelch('NOT_FOUND'), Squelch('UNKNOWN')
-                     ],
-            datalakeName=datalake_name, restoreId=restore_id
+            svc="datalake",
+            func="restore_datalake_status",
+            squelch=[Squelch("NOT_FOUND"), Squelch("UNKNOWN")],
+            datalakeName=datalake_name,
+            restoreId=restore_id,
         )
 
     def prepare_datalake_upgrade(self, datalake_name, image_id=None, runtime=None):
         return self.sdk.call(
-            svc='datalake', func='prepare_datalake_upgrade',
-            squelch=[Squelch('NOT_FOUND'), Squelch('UNKNOWN')
-                     ],
-            datalake=datalake_name, imageId=image_id, runtime=runtime
+            svc="datalake",
+            func="prepare_datalake_upgrade",
+            squelch=[Squelch("NOT_FOUND"), Squelch("UNKNOWN")],
+            datalake=datalake_name,
+            imageId=image_id,
+            runtime=runtime,
         )
 
-    def datalake_upgrade(self, datalake_name, image_id=None, runtime=None, 
-                         os_only_upgrade=None, rolling_upgrade=None, skip_atlas_metadata=None, 
-                         skip_backup=None, skip_backup_validation=None, 
-                         skip_ranger_audits=None, skip_ranger_hms_metadata=None):
+    def datalake_upgrade(
+        self,
+        datalake_name,
+        image_id=None,
+        runtime=None,
+        os_only_upgrade=None,
+        rolling_upgrade=None,
+        skip_atlas_metadata=None,
+        skip_backup=None,
+        skip_backup_validation=None,
+        skip_ranger_audits=None,
+        skip_ranger_hms_metadata=None,
+    ):
         return self.sdk.call(
-            svc='datalake', func='upgrade_datalake',
-            squelch=[Squelch('NOT_FOUND'), Squelch('UNKNOWN')
-                     ],
-            datalakeName=datalake_name, imageId=image_id, runtime=runtime, 
-            lockComponents=os_only_upgrade, rollingUpgradeEnabled=rolling_upgrade,
-            skipAtlasMetadata=skip_atlas_metadata, skipBackup=skip_backup, skipBackupValidation=skip_backup_validation,
-            skipRangerAudits=skip_ranger_audits, skipRangerHmsMetadata=skip_ranger_hms_metadata
+            svc="datalake",
+            func="upgrade_datalake",
+            squelch=[Squelch("NOT_FOUND"), Squelch("UNKNOWN")],
+            datalakeName=datalake_name,
+            imageId=image_id,
+            runtime=runtime,
+            lockComponents=os_only_upgrade,
+            rollingUpgradeEnabled=rolling_upgrade,
+            skipAtlasMetadata=skip_atlas_metadata,
+            skipBackup=skip_backup,
+            skipBackupValidation=skip_backup_validation,
+            skipRangerAudits=skip_ranger_audits,
+            skipRangerHmsMetadata=skip_ranger_hms_metadata,
         )
 
     def check_datalake_upgrade(self, datalake_name):
         return self.sdk.call(
-            svc='datalake', func='upgrade_datalake',
-            squelch=[Squelch('NOT_FOUND'), Squelch('UNKNOWN')
-                     ],
-            datalakeName=datalake_name, 
-            showAvailableImages=True
+            svc="datalake",
+            func="upgrade_datalake",
+            squelch=[Squelch("NOT_FOUND"), Squelch("UNKNOWN")],
+            datalakeName=datalake_name,
+            showAvailableImages=True,
         )
