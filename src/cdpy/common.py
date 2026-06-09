@@ -713,6 +713,10 @@ class CdpcliWrapper(object):
                 )
             else:
                 next_page = call_function(**payload, startingToken=token)
+            next_page = self._normalize_call_response(
+                next_page,
+                context="page:{0}".format(call_function.__name__),
+            )
             for key in next_page.keys():
                 if isinstance(next_page[key], str):
                     response[key] = next_page[key]
@@ -768,12 +772,41 @@ class CdpcliWrapper(object):
             self.throw_error(
                 CdpError("Redirect call attempted but redirect URL was empty")
             )
+        full_response = self._normalize_call_response(
+            full_response,
+            context="redirect:{0}".format(call_function),
+        )
         return full_response
+
+    def _normalize_call_response(self, response, context="call"):
+        """
+        Normalize SDK call responses to the payload dict when cdpcli returns
+        (http_response, payload_dict) tuples.
+        """
+        if isinstance(response, tuple):
+            if len(response) >= 2 and isinstance(response[1], dict):
+                return response[1]
+            if len(response) == 1 and isinstance(response[0], dict):
+                return response[0]
+            self.throw_error(
+                CdpError(
+                    "Unexpected tuple response from {0}: tuple(len={1}, types={2})".format(
+                        context,
+                        len(response),
+                        [type(item).__name__ for item in response],
+                    )
+                )
+            )
+        return response
 
     def _handle_std_call(self, client, call_function, payload):
         func_to_call = getattr(client, call_function)
         raw_response = func_to_call(**payload)
-        if raw_response is not None and "nextToken" in raw_response:
+        raw_response = self._normalize_call_response(
+            raw_response,
+            context="std:{0}".format(call_function),
+        )
+        if isinstance(raw_response, dict) and "nextToken" in raw_response:
             logging.debug("Found paged results in %s" % call_function)
             full_response = self._handle_paging(raw_response, func_to_call, payload)
         else:
@@ -820,12 +853,27 @@ class CdpcliWrapper(object):
             else:
                 full_response = self._handle_std_call(svc_client, func, payload)
 
+            # Defensive normalization in the outer call flow in case upstream
+            # paths return tuple payloads unexpectedly.
+            full_response = self._normalize_call_response(
+                full_response,
+                context="call:{0}.{1}".format(svc, func),
+            )
+
             if ret_field is not None:
                 if not full_response:
                     self.throw_warning(
                         CdpWarning(
                             "Call Response is empty, cannot return child field %s"
                             % ret_field
+                        )
+                    )
+                elif not isinstance(full_response, dict):
+                    self.throw_error(
+                        CdpError(
+                            "Call response for {0}.{1} is type {2}, cannot return child field '{3}'".format(
+                                svc, func, type(full_response).__name__, ret_field
+                            )
                         )
                     )
                 else:

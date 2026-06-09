@@ -17,7 +17,7 @@ classifiers = [
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-  "importlib-metadata",
+  # "importlib-metadata",
   "cdpcli-beta>=0.9.101"
 ]
 dynamic = ["version"]
@@ -39,7 +39,6 @@ include = [
 
 [tool.hatch.envs.default]
 dependencies = [
-  "coverage[toml]",
   "pytest",
   "pytest-cov",
   "wheel",
@@ -67,16 +66,14 @@ dependencies = [
   "sphinx"
 ]
 
-[tool.hatch.envs.docs.scripts]
-
-[tool.hatch.envs.test]
+[tool.hatch.envs.hatch-test]
 dependencies = [
   "pytest",
-  "pytest-sugar"
+  "pytest-mock"
 ]
 
-[[tool.hatch.envs.test.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 
 [build-system]
 requires = [
