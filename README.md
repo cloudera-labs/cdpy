@@ -4,16 +4,10 @@ A Simple Pythonic Client wrapper for Cloudera CDP CLI, designed for use with the
 
 ## Installation
 
-To install directly from latest commits, in python requirements.txt
+Install directly from latest commits, in python requirements.txt
 
 ```
 git+https://github.com/cloudera-labs/cdpy@main#egg=cdpy
-```
-
-For general usage, installed from cmdline
-
-```bash
-pip install cdpy
 ```
 
 To install the development branch instead of main
